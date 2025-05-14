@@ -27,16 +27,12 @@ import {
       items: [{ label: "Dashboard", icon: <DashboardIcon fontSize="small" /> }],
     },
     {
-      title: "Feedbacks",
+      title: "Reports",
       items: [
-        { label: "Recebidos", icon: <InboxIcon fontSize="small" /> },
+        { label: "report", icon: <InboxIcon fontSize="small" /> },
         { label: "In Progress", icon: <HourglassTopIcon fontSize="small" /> },
         { label: "Done", icon: <DoneIcon fontSize="small" /> },
       ],
-    },
-    {
-      title: "Personalizar",
-      items: [{ label: "Widget", icon: <TuneIcon fontSize="small" /> }],
     },
     {
       title: "Gerenciamento",
@@ -47,83 +43,92 @@ import {
         { label: "Webhooks", icon: <HttpIcon fontSize="small" /> },
       ],
     },
-  ];
+];
   
-  const Sidebar = () => {
-    return (
-      <Drawer
-        variant="permanent"
-        sx={{
+interface SidebarProps {
+  onSelectPage: (page: string) => void;
+}
+
+const Sidebar = ({ onSelectPage }: SidebarProps) => {
+  return (
+    <Drawer
+      variant="permanent"
+      sx={{
+        width: drawerWidth,
+        flexShrink: 0,
+        [`& .MuiDrawer-paper`]: {
           width: drawerWidth,
-          flexShrink: 0,
-          [`& .MuiDrawer-paper`]: {
-            width: drawerWidth,
-            bgcolor: "#0c0c0f",
-            color: "#e4e4e7",
-            boxSizing: "border-box",
-            borderRight: "1px solid #1e1e23",
-          },
-        }}
-      >
-        <Box sx={{ px: 3, py: 4 }}>
+          bgcolor: "#0F172A", 
+          color: "#F1F5F9",
+          boxSizing: "border-box",
+          borderRight: "1px solid #1e1e23",
+        },
+      }}
+    >
+      <Box sx={{ px: 3, py: 1, borderBottom: "1px solid #3B82F6" }}>
+        <div className="flex flex-row items-center">
+          <img src="../../icons/logo.jpeg" className="w-12 h-12 mr-3" />
           <Typography variant="h6" fontWeight="bold">
-            Teste
+            OwlReport
           </Typography>
-          <Typography variant="caption" color="#6b7280">
-            owner
-          </Typography>
-        </Box>
-  
-        <Divider sx={{ borderColor: "#1e1e23" }} />
-  
-        <List>
-          {sections.map((section, idx) => (
-            <Box key={idx} sx={{ mt: 2 }}>
-              <Typography
-                variant="caption"
-                sx={{ color: "#6b7280", px: 3, mb: 1, display: "block" }}
+        </div>
+      </Box>
+
+      <Divider sx={{ borderColor: "#1e1e23" }} />
+
+      <List>
+        {sections.map((section, idx) => (
+          <Box key={idx} sx={{ mt: 2 }}>
+            <Typography
+              variant="caption"
+              sx={{ color: "#9CA3AF", px: 3, mb: 1, display: "block" }}
+            >
+              {section.title}
+            </Typography>
+            {section.items.map(({ label, icon }) => (
+              <ListItemButton
+                key={label}
+                onClick={() => onSelectPage(label.toLowerCase())} 
+                sx={{
+                  borderRadius: 1,
+                  mx: 1,
+                  mb: 0.5,
+                  transition: "all 0.2s",
+                  "&:hover": {
+                    bgcolor: "#334155",
+                  },
+                }}
               >
-                {section.title}
-              </Typography>
-              {section.items.map(({ label, icon }) => (
-                <ListItemButton
-                  key={label}
-                  sx={{
-                    borderRadius: 1,
-                    mx: 1,
-                    mb: 0.5,
-                    "&:hover": {
-                      bgcolor: "#1e1e23",
-                    },
-                  }}
-                >
-                  <ListItemIcon sx={{ color: "#9ca3af", minWidth: 32 }}>{icon}</ListItemIcon>
-                  <ListItemText
-                    primary={label}
-                    primaryTypographyProps={{ fontSize: 14, color: "#e4e4e7" }}
-                  />
-                </ListItemButton>
-              ))}
-            </Box>
-          ))}
-        </List>
-  
-        <Box sx={{ mt: "auto", px: 3, py: 4 }}>
-          <Typography variant="caption" color="#6b7280">
-            Tema • Idioma
-          </Typography>
-          <Box mt={1}>
-            <Typography variant="body2" fontWeight="bold">
-              Prevedello
-            </Typography>
-            <Typography variant="caption" color="#9ca3af">
-              soarezin223@gmail.com
-            </Typography>
+                <ListItemIcon sx={{ color: "#9CA3AF", minWidth: 32 }}>
+                  {icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={label}
+                  primaryTypographyProps={{ fontSize: 14, color: "#F1F5F9" }}
+                />
+              </ListItemButton>
+            ))}
           </Box>
+        ))}
+      </List>
+
+      <Box sx={{ mt: "auto", px: 3, py: 4 }}>
+        <Typography variant="caption" color="#94A3B8">
+          Tema • Idioma
+        </Typography>
+        <Box mt={1}>
+          <Typography variant="body2" fontWeight="bold">
+            Prevedello
+          </Typography>
+          <Typography variant="caption" color="#94A3B8">
+            soarezin223@gmail.com
+          </Typography>
         </Box>
-      </Drawer>
-    );
-  };
+      </Box>
+    </Drawer>
+  );
+};
+
   
   export default Sidebar;
   

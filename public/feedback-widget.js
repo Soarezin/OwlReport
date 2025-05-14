@@ -1,7 +1,7 @@
 (function () {
   // CSS embutido
   const css = `
-    #replayflow-feedback-btn {
+    #owlreport-feedback-btn {
       position: fixed;
       right: 0;
       top: 40%;
@@ -15,7 +15,7 @@
       z-index: 1000;
     }
 
-    #replayflow-modal {
+    #owlreport-modal {
       position: fixed;
       bottom: 20px;
       right: 20px;
@@ -31,9 +31,9 @@
       font-family: sans-serif;
     }
 
-    #replayflow-modal input,
-    #replayflow-modal textarea,
-    #replayflow-modal select {
+    #owlreport-modal input,
+    #owlreport-modal textarea,
+    #owlreport-modal select {
       width: 100%;
       margin: 6px 0;
       padding: 8px;
@@ -43,7 +43,7 @@
       border-radius: 6px;
     }
 
-    #replayflow-modal button {
+    #owlreport-modal button {
       width: 100%;
       padding: 10px;
       background: #6366f1;
@@ -55,7 +55,7 @@
       cursor: pointer;
     }
 
-    #replayflow-modal .close-btn {
+    #owlreport-modal .close-btn {
       position: absolute;
       top: 10px;
       right: 14px;
@@ -63,7 +63,7 @@
       cursor: pointer;
     }
 
-    #replayflow-modal a {
+    #owlreport-modal a {
       color: #a5b4fc;
       text-decoration: none;
     }
@@ -74,7 +74,7 @@
 
   // Botão lateral
   const button = document.createElement("div");
-  button.id = "replayflow-feedback-btn";
+  button.id = "owlreport-feedback-btn";
   button.innerText = "Feedback";
   button.onclick = () => {
     modal.style.display = "block";
@@ -82,9 +82,9 @@
 
   // Modal com formulário
   const modal = document.createElement("div");
-  modal.id = "replayflow-modal";
+  modal.id = "owlreport-modal";
   modal.innerHTML = `
-    <div class="close-btn" onclick="document.getElementById('replayflow-modal').style.display='none'">×</div>
+    <div class="close-btn" onclick="document.getElementById('owlreport-modal').style.display='none'">×</div>
     <h3 style="margin-bottom: 8px;">Deixe-nos um feedback</h3>
     <select>
       <option>Erro</option>
@@ -105,7 +105,7 @@
   document.body.appendChild(modal);
 
   // Gravação com rrweb
-  const ReplayFlow = {
+  const owlreport = {
     config: {
       appId: "demo",
       user: { id: "widget-user", email: "user@email.com" },
@@ -148,6 +148,6 @@
   // Carrega rrweb dinamicamente
   const rrwebScript = document.createElement("script");
   rrwebScript.src = "https://cdn.jsdelivr.net/npm/rrweb@1.1.3/dist/rrweb.min.js";
-  rrwebScript.onload = () => ReplayFlow.startRecording();
+  rrwebScript.onload = () => owlreport.startRecording();
   document.head.appendChild(rrwebScript);
 })();

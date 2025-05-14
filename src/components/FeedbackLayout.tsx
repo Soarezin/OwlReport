@@ -1,10 +1,9 @@
 import { Box, AppBar, Toolbar, Typography, Button } from "@mui/material";
 import Sidebar from "../components/Sidebar";
 
-const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+const FeedBackLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <Box sx={{ display: "flex", height: "100vh", bgcolor: "#0c0c0f", color: "#fff" }}>
-      <Sidebar />
       <Box component="main" sx={{ flexGrow: 1, px: 5, py: 4 }}>
         <AppBar
           position="static"
@@ -40,4 +39,4 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export default DashboardLayout;
+export default FeedBackLayout;
