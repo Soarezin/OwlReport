@@ -18,6 +18,7 @@ import {
   import SettingsIcon from "@mui/icons-material/Settings";
   import PeopleIcon from "@mui/icons-material/People";
   import HttpIcon from "@mui/icons-material/Http";
+  import AccountCircleIcon from "@mui/icons-material/AccountCircle";
   
   const drawerWidth = 260;
   
@@ -47,9 +48,11 @@ import {
   
 interface SidebarProps {
   onSelectPage: (page: string) => void;
+  currentPage: string;
+
 }
 
-const Sidebar = ({ onSelectPage }: SidebarProps) => {
+const Sidebar = ({ onSelectPage, currentPage }: SidebarProps) => {
   return (
     <Drawer
       variant="permanent"
@@ -58,7 +61,7 @@ const Sidebar = ({ onSelectPage }: SidebarProps) => {
         flexShrink: 0,
         [`& .MuiDrawer-paper`]: {
           width: drawerWidth,
-          bgcolor: "#0F172A", 
+          bgcolor: "#0F172A",
           color: "#F1F5F9",
           boxSizing: "border-box",
           borderRight: "1px solid #1e1e23",
@@ -68,7 +71,14 @@ const Sidebar = ({ onSelectPage }: SidebarProps) => {
       <Box sx={{ px: 3, py: 1, borderBottom: "1px solid #3B82F6" }}>
         <div className="flex flex-row items-center">
           <img src="../../icons/logo.jpeg" className="w-12 h-12 mr-3" />
-          <Typography variant="h6" fontWeight="bold">
+          <Typography variant="h6" fontWeight="bold"
+            sx={{
+              fontFamily: "Space Grotesk, sans-serif",
+              fontWeight: 700,
+              fontSize: "20px",
+              letterSpacing: "0.5px",
+              color: "#F8FAFC", // texto mais claro
+            }}>
             OwlReport
           </Typography>
         </div>
@@ -85,50 +95,77 @@ const Sidebar = ({ onSelectPage }: SidebarProps) => {
             >
               {section.title}
             </Typography>
-            {section.items.map(({ label, icon }) => (
-              <ListItemButton
-                key={label}
-                onClick={() => onSelectPage(label.toLowerCase())} 
-                sx={{
-                  borderRadius: 1,
-                  mx: 1,
-                  mb: 0.5,
-                  transition: "all 0.2s",
-                  "&:hover": {
-                    bgcolor: "#334155",
-                  },
-                }}
-              >
-                <ListItemIcon sx={{ color: "#9CA3AF", minWidth: 32 }}>
-                  {icon}
-                </ListItemIcon>
-                <ListItemText
-                  primary={label}
-                  primaryTypographyProps={{ fontSize: 14, color: "#F1F5F9" }}
-                />
-              </ListItemButton>
-            ))}
+            {section.items.map(({ label, icon }) => {
+              const pageKey = label.toLowerCase();
+              const isActive = currentPage === pageKey;
+
+              return (
+                <ListItemButton
+                  key={label}
+                  onClick={() => onSelectPage(pageKey)}
+                  sx={{
+                    borderRadius: 1,
+                    mx: 1,
+                    mb: 0.5,
+                    transition: "all 0.2s",
+                    bgcolor: isActive ? "#1E293B" : "transparent",
+                    "&:hover": {
+                      bgcolor: "#334155",
+                    },
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      color: isActive ? "#3B82F6" : "#9CA3AF",
+                      minWidth: 32,
+                    }}
+                  >
+                    {icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={label}
+                    primaryTypographyProps={{
+                      fontSize: 14,
+                      color: isActive ? "#3B82F6" : "#F1F5F9",
+                      fontWeight: isActive ? "bold" : "normal",
+                    }}
+                  />
+                </ListItemButton>
+              );
+            })}
           </Box>
         ))}
       </List>
 
-      <Box sx={{ mt: "auto", px: 3, py: 4 }}>
-        <Typography variant="caption" color="#94A3B8">
-          Tema • Idioma
-        </Typography>
-        <Box mt={1}>
-          <Typography variant="body2" fontWeight="bold">
-            Prevedello
-          </Typography>
-          <Typography variant="caption" color="#94A3B8">
-            soarezin223@gmail.com
-          </Typography>
+      <Box sx={{ mt: "auto" }}>
+        <Box sx={{ px: 2, py: 3, borderTop: "1px solid #3B82F6" }}>
+          <Box display="flex" alignItems="flex-start" gap={1}>
+            <AccountCircleIcon sx={{ fontSize: 28, color: "#94A3B8" }} />
+            <Box display="flex" flexDirection="column" justifyContent="center">
+              <Typography variant="body2" color="#F1F5F9">
+                <strong>Prevedello</strong>
+                <span style={{ margin: "0 4px" }}>•</span>
+                <span style={{ color: "#94A3B8", fontWeight: 400 }}>Admin</span>
+              </Typography>
+              <Typography
+                variant="caption"
+                color="#94A3B8"
+                sx={{
+                  cursor: "pointer",
+                  "&:hover": { textDecoration: "underline" },
+                }}
+              >
+                Sair
+              </Typography>
+            </Box>
+          </Box>
         </Box>
       </Box>
     </Drawer>
   );
 };
 
+export default Sidebar;
+
   
-  export default Sidebar;
   

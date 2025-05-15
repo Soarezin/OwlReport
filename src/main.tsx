@@ -1,10 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import muiTheme from './theme/muiTheme';
 import App from './pages/App';
 import RegisterPage from './pages/RegisterPage';
+import LoginPage from './pages/LoginPage';
+
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -14,6 +16,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Routes>
           <Route path="/" element={<App />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login" element={<LoginPage />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

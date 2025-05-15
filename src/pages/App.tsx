@@ -5,11 +5,18 @@ import FeedbackPanel from "../pages/FeedbackPanel";
 import MainLayout from "../components/MainLayout";
 import { Box } from "@mui/material";
 import Sidebar from "../components/Sidebar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import LoginPage from "./LoginPage";
 
 
 const App = () => {
   const [currentPage, setCurrentPage] = useState("dashboard");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsAuthenticated(!!token);
+  }, []);
 
   const renderPage = () => {
     switch (currentPage) {
@@ -22,9 +29,15 @@ const App = () => {
     }
   };
 
+  if (!isAuthenticated) {
+    return (
+        <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />
+    );
+  }
+
   return (
     <div className="flex h-screen">
-      <Sidebar onSelectPage={setCurrentPage} />
+      <Sidebar onSelectPage={setCurrentPage} currentPage={currentPage} />
       <MainLayout>{renderPage()}</MainLayout>
     </div>
   );

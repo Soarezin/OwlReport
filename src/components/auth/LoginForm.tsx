@@ -4,35 +4,32 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api'; 
 
-export default function RegisterForm() {
+interface LoginFormProps {
+    onLoginSuccess: () => void;
+}
+
+export default function  LoginForm({ onLoginSuccess }: LoginFormProps) {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [CompanyName, setProjectName] = useState('');
+    const [projectName, setProjectName] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
   
-    const handleRegister = async () => {
-      setLoading(true);
-      try {
-        const registerRes = await api.post('/auth/register', {
-          name,
-          email,
-          password,
-          CompanyName,
-        });
-  
-        const token = registerRes.data.data.token;
-        localStorage.setItem('token', token);
-        navigate('/');
-
-      } catch (err) {
-        console.error(err);
-        alert('Erro ao registrar ou criar projeto.');
-      } finally {
-        setLoading(false);
-      }
-    };
+    const handleLogin = async () => {
+        setLoading(true);
+        try {
+          const loginRes = await api.post('/auth/login', { email, password });
+          const token = loginRes.data.data.token;
+          localStorage.setItem('token', token);
+          onLoginSuccess();
+        } catch (err) {
+          console.error(err);
+          alert('Erro ao realizar login.');
+        } finally {
+          setLoading(false);
+        }
+      };
   
     return (
       <div className="min-h-screen bg-owl-background flex items-center justify-center px-4">
@@ -41,23 +38,11 @@ export default function RegisterForm() {
           <div className="flex flex-col items-center mb-6">
             <img src="../../icons/logo.jpeg" className="w-12 h-12 mb-3" />
             <Typography variant="h4" className="font-display font-bold text-owl-text">
-              Vamos começar?
-            </Typography>
-            <Typography variant="body2" className="text-owl-secondaryText mt-1 text-center">
-              Crie sua Conta e Empresa ou Equipe.
-            </Typography>
+              Login
+            </Typography>          
           </div>
     
           <form className="space-y-4">
-            <TextField
-              label="Seu Nome"
-              fullWidth
-              variant="outlined"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              InputLabelProps={{ style: { color: '#94A3B8' } }}
-              InputProps={{ style: { color: '#F1F5F9' } }}
-            />
             <TextField
               label="E-mail"
               type="email"
@@ -78,20 +63,11 @@ export default function RegisterForm() {
               InputLabelProps={{ style: { color: '#94A3B8' } }}
               InputProps={{ style: { color: '#F1F5F9' } }}
             />
-            <TextField
-              label="Nome da sua empresa ou equipe"
-              fullWidth
-              variant="outlined"
-              value={CompanyName}
-              onChange={(e) => setProjectName(e.target.value)}
-              InputLabelProps={{ style: { color: '#94A3B8' } }}
-              InputProps={{ style: { color: '#F1F5F9' } }}
-            />
             <Button
               variant="contained"
               fullWidth
               disabled={loading}
-              onClick={handleRegister}
+              onClick={handleLogin}
               sx={{
                 mt: 1,
                 background: 'linear-gradient(to right, #3B82F6, #2563EB)',
@@ -104,10 +80,25 @@ export default function RegisterForm() {
                 letterSpacing: 0.5,
               }}
             >
-              {loading ? <CircularProgress size={24} color="inherit" /> : 'Continuar'}
+              {loading ? <CircularProgress size={24} color="inherit" /> : 'Entrar'}
             </Button>
-          </form>
+                </form>
+            <Typography variant="body2" className="text-owl-secondaryText mt-1 text-center" style={{ marginTop: '1rem' }}>
+                Ainda não tem uma conta?{' '}
+            <a
+                href="/register"
+                className="over:underline"
+                style={{ color: '#3B82F6', fontWeight: 'bold' }}
+            >
+                Cadastre-se
+            </a>
+            </Typography>
         </div>
       </div>
     );
   }
+
+function onLoginSuccess() {
+    throw new Error('Function not implemented.');
+}
+
