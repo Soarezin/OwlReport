@@ -7,6 +7,7 @@ import { Box } from "@mui/material";
 import Sidebar from "../components/Sidebar";
 import { useEffect, useState } from "react";
 import LoginPage from "./LoginPage";
+import UserManagement from "../components/user-management/UserManagement";
 
 
 const App = () => {
@@ -24,6 +25,8 @@ const App = () => {
         return <Dashboard />;
       case "report":
         return <FeedbackPanel />;
+      case "membros":
+        return <UserManagement />;
       default:
         return <div>404 - Página não encontrada</div>;
     }

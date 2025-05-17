@@ -22,6 +22,11 @@ export default function  LoginForm({ onLoginSuccess }: LoginFormProps) {
           const loginRes = await api.post('/auth/login', { email, password });
           const token = loginRes.data.data.token;
           localStorage.setItem('token', token);
+
+          const getMeRes = await api.get('/user-management/user-me');
+          const userData = JSON.stringify(getMeRes.data.data);
+          localStorage.setItem('user', userData);
+
           onLoginSuccess();
         } catch (err) {
           console.error(err);

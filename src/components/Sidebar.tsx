@@ -1,51 +1,53 @@
 import {
-    Box,
-    Drawer,
-    List,
-    ListItemButton,
-    ListItemText,
-    ListItemIcon,
-    Divider,
-    Typography,
-  } from "@mui/material";
-  
-  import DashboardIcon from "@mui/icons-material/Dashboard";
-  import InboxIcon from "@mui/icons-material/Inbox";
-  import HourglassTopIcon from "@mui/icons-material/HourglassTop";
-  import DoneIcon from "@mui/icons-material/Done";
-  import TuneIcon from "@mui/icons-material/Tune";
-  import KeyIcon from "@mui/icons-material/VpnKey";
-  import SettingsIcon from "@mui/icons-material/Settings";
-  import PeopleIcon from "@mui/icons-material/People";
-  import HttpIcon from "@mui/icons-material/Http";
-  import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-  
-  const drawerWidth = 260;
-  
-  const sections = [
-    {
-      title: "Dashboard",
-      items: [{ label: "Dashboard", icon: <DashboardIcon fontSize="small" /> }],
-    },
-    {
-      title: "Reports",
-      items: [
-        { label: "report", icon: <InboxIcon fontSize="small" /> },
-        { label: "In Progress", icon: <HourglassTopIcon fontSize="small" /> },
-        { label: "Done", icon: <DoneIcon fontSize="small" /> },
-      ],
-    },
-    {
-      title: "Gerenciamento",
-      items: [
-        { label: "Chaves", icon: <KeyIcon fontSize="small" /> },
-        { label: "Configurações", icon: <SettingsIcon fontSize="small" /> },
-        { label: "Membros", icon: <PeopleIcon fontSize="small" /> },
-        { label: "Webhooks", icon: <HttpIcon fontSize="small" /> },
-      ],
-    },
+  Box,
+  Drawer,
+  List,
+  ListItemButton,
+  ListItemText,
+  ListItemIcon,
+  Divider,
+  Typography,
+} from "@mui/material";
+
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import InboxIcon from "@mui/icons-material/Inbox";
+import HourglassTopIcon from "@mui/icons-material/HourglassTop";
+import DoneIcon from "@mui/icons-material/Done";
+import TuneIcon from "@mui/icons-material/Tune";
+import KeyIcon from "@mui/icons-material/VpnKey";
+import SettingsIcon from "@mui/icons-material/Settings";
+import PeopleIcon from "@mui/icons-material/People";
+import HttpIcon from "@mui/icons-material/Http";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import BusinessIcon from "@mui/icons-material/Business";
+
+const drawerWidth = 260;
+
+const sections = [
+  {
+    title: "Dashboard",
+    items: [{ label: "Dashboard", icon: <DashboardIcon fontSize="small" /> }],
+  },
+  {
+    title: "Reports",
+    items: [
+      { label: "report", icon: <InboxIcon fontSize="small" /> },
+      { label: "In Progress", icon: <HourglassTopIcon fontSize="small" /> },
+      { label: "Done", icon: <DoneIcon fontSize="small" /> },
+    ],
+  },
+  {
+    title: "Gerenciamento",
+    items: [
+      { label: "Chaves", icon: <KeyIcon fontSize="small" /> },
+      { label: "Configurações", icon: <SettingsIcon fontSize="small" /> },
+      { label: "Membros", icon: <PeopleIcon fontSize="small" /> },
+      { label: "Webhooks", icon: <HttpIcon fontSize="small" /> },
+    ],
+  },
 ];
-  
+
+
 interface SidebarProps {
   onSelectPage: (page: string) => void;
   currentPage: string;
@@ -53,6 +55,8 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ onSelectPage, currentPage }: SidebarProps) => {
+  const user = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")!) : null;
+
   return (
     <Drawer
       variant="permanent"
@@ -61,21 +65,21 @@ const Sidebar = ({ onSelectPage, currentPage }: SidebarProps) => {
         flexShrink: 0,
         [`& .MuiDrawer-paper`]: {
           width: drawerWidth,
-          bgcolor: "#0F172A",
+          bgcolor: "#111C2D",
           color: "#F1F5F9",
           boxSizing: "border-box",
-          borderRight: "1px solid #1e1e23",
+          borderRight: "1px solid #334155",
         },
       }}
     >
-      <Box sx={{ px: 3, py: 1, borderBottom: "1px solid #3B82F6" }}>
+      <Box sx={{ px: 3, py: 1, borderBottom: "1px solid #334155" }}>
         <div className="flex flex-row items-center">
           <img src="../../icons/logo.jpeg" className="w-12 h-12 mr-3" />
           <Typography variant="h6" fontWeight="bold"
             sx={{
               fontFamily: "Space Grotesk, sans-serif",
               fontWeight: 700,
-              fontSize: "20px",
+              fontSize: "24px",
               letterSpacing: "0.5px",
               color: "#F8FAFC", // texto mais claro
             }}>
@@ -138,14 +142,14 @@ const Sidebar = ({ onSelectPage, currentPage }: SidebarProps) => {
       </List>
 
       <Box sx={{ mt: "auto" }}>
-        <Box sx={{ px: 2, py: 3, borderTop: "1px solid #3B82F6" }}>
+        <Box sx={{ px: 2, py: 2, borderTop: "1px solid #334155", paddingBottom: 1 }}>
           <Box display="flex" alignItems="flex-start" gap={1}>
             <AccountCircleIcon sx={{ fontSize: 28, color: "#94A3B8" }} />
             <Box display="flex" flexDirection="column" justifyContent="center">
               <Typography variant="body2" color="#F1F5F9">
-                <strong>Prevedello</strong>
+                <strong>{user?.name || "Guest"}</strong>
                 <span style={{ margin: "0 4px" }}>•</span>
-                <span style={{ color: "#94A3B8", fontWeight: 400 }}>Admin</span>
+                <span style={{ color: "#94A3B8", fontWeight: 400 }}>{user?.role}</span>
               </Typography>
               <Typography
                 variant="caption"
@@ -161,11 +165,16 @@ const Sidebar = ({ onSelectPage, currentPage }: SidebarProps) => {
           </Box>
         </Box>
       </Box>
+      <Box display="flex" alignItems="center" gap={1} borderTop={'1px solid #334155'} padding={2}>
+        <BusinessIcon sx={{ fontSize: 20, color: '#94A3B8' }} />
+        <Typography variant="caption" color="#94A3B8">
+          <strong style={{ color: '#F1F5F9' }}>{user.clientName}</strong>
+        </Typography>
+      </Box>
     </Drawer>
   );
 };
 
 export default Sidebar;
 
-  
-  
+

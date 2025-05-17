@@ -1,16 +1,23 @@
-import { Box, AppBar, Toolbar, Typography, Button } from "@mui/material";
-import Sidebar from "./Sidebar";
+import { Box } from "@mui/material";
+import { ReactNode } from "react";
 
-const MainLayout = ({ children }: { children: React.ReactNode }) => {
+interface Props {
+  children: ReactNode;
+}
+
+const MainLayout = ({ children }: Props) => {
   return (
     <Box
       sx={{
-        display: "flex",
-        height: "100vh",
+        flex: 1,
+        height: '100vh',
+        width: '100%',
+        overflowY: 'auto',
+        display: 'flex',
+        flexDirection: 'column'
       }}
     >
-      
-        {children}
+      {children}
     </Box>
   );
 };
