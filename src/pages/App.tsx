@@ -8,7 +8,7 @@ import Sidebar from "../components/Sidebar";
 import { useEffect, useState } from "react";
 import LoginPage from "./LoginPage";
 import UserManagement from "../components/user-management/UserManagement";
-
+import { SnackbarProvider } from "./../components/snackbar/SnackbarContext";
 
 const App = () => {
   const [currentPage, setCurrentPage] = useState("dashboard");
@@ -34,15 +34,19 @@ const App = () => {
 
   if (!isAuthenticated) {
     return (
-        <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />
+        <LoginPage onLoginSuccess={() => setIsAuthenticated(false)} />
     );
   }
 
-  return (
+return (
+  <SnackbarProvider>
+    
     <div className="flex h-screen">
       <Sidebar onSelectPage={setCurrentPage} currentPage={currentPage} />
       <MainLayout>{renderPage()}</MainLayout>
     </div>
+    </SnackbarProvider>
+
   );
 };
 

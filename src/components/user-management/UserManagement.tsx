@@ -4,17 +4,17 @@ import {
     TableContainer, Paper, Chip, Button, IconButton, Box, Typography,
 } from "@mui/material";
 import api from "../../services/api";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import AddIcon from "@mui/icons-material/Add";
 import ToggleOffIcon from "@mui/icons-material/ToggleOff";
 import ToggleOnIcon from "@mui/icons-material/ToggleOn";
 import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import AddBoxIcon from "@mui/icons-material/AddBox";
 import SearchIcon from '@mui/icons-material/Search';
 import Tooltip from '@mui/material/Tooltip';
-import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import AddUserModal from "./AddUserModal";
+import { UniqueIdentifier } from "@dnd-kit/core";
+import { useSnackbar } from "../snackbar/SnackbarContext";
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+
 interface ProjectWithRoleDto {
     projectUserId: string;
     projectId: string;
@@ -33,20 +33,58 @@ interface UserResponse {
     projects: ProjectWithRoleDto[];
 }
 
+interface ProjectResponse {
+    id: UniqueIdentifier;
+    name: string;
+    countOpenReports: number;
+    stage: number;
+}
+
+interface RoleResponse {
+    id: UniqueIdentifier;
+    name: string;
+    description: string;
+    isActive: boolean;
+}
+
 export default function MembersPage() {
+    const [projects, setProjects] = useState<ProjectResponse[]>([]);
     const [users, setUsers] = useState<UserResponse[]>([]);
+    const [roles, setRoles] = useState<RoleResponse[]>([]);
+    const [openModal, setOpenModal] = useState(false);
+    const { showMessage } = useSnackbar();
+
+    const fetchUsers = async () => {
+        try {
+            const response = await api.get("/user-management/list-users");
+            setUsers(response.data.data);
+        } catch (error) {
+            showMessage("Erro ao buscar usuários", "error");
+        }
+    };
+
+    const fetchProjects = async () => {
+        try {
+            const response = await api.get("/project/list-projects");
+            setProjects(response.data.data);
+        } catch (error) {
+            showMessage("Erro ao buscar projetos", "error");
+        }
+    };
+
+    const fetchRoles = async () => {
+        try {
+            const response = await api.get("/user-management/get-roles");
+            setRoles(response.data.data);
+        } catch (error) {
+            showMessage("Erro ao buscar funções", "error");
+        }
+    };
 
     useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const response = await api.get("/user-management/list-users");
-                setUsers(response.data.data);
-            } catch (error) {
-                console.error("Erro ao buscar usuários:", error);
-            }
-        };
-
         fetchUsers();
+        fetchProjects();
+        fetchRoles();
     }, []);
 
     const onEdit = (userId: string) => {
@@ -61,16 +99,20 @@ export default function MembersPage() {
         console.log("Excluir:", userId);
     };
 
-    const onToggleActive = (userId: string) => {
-        console.log("Alternar ativo/inativo:", userId);
-
+    const onToggleActive = async (userId: string) => {
+        const response = await api.post(`user-management/toggle-user/${userId}`)
+        if (response.status === 200) {
+            await fetchUsers();
+        } else {
+            showMessage("Erro ao desativar usuário", "error");
+        }
     };
 
     return (
         <Box p={4} width="100%" height="100%">
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                <Typography variant="h5" color="white" fontWeight="bold" >Gestão de Membros</Typography>
-                <Button variant="contained" color="primary" startIcon={<AddIcon />}>
+                <Typography variant="h5" color="white" fontWeight="bold" >Gerenciamento de Membros</Typography>
+                <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={() => setOpenModal(true)}>
                     Adicionar Usuário
                 </Button>
             </Box>
@@ -87,7 +129,7 @@ export default function MembersPage() {
                 <Table>
                     <TableHead>
                         <TableRow sx={{ borderBottom: '1px solid #334155' }}>
-                            {["Nome", "E-mail", "Status", "Projetos", "Criado Em", "Ações"].map(header => (
+                            {["Nome", "E-mail", "Ativo", "Projetos", "Criado Em", "Ações"].map(header => (
                                 <TableCell
                                     key={header}
                                     sx={{
@@ -115,56 +157,41 @@ export default function MembersPage() {
                             >
                                 <TableCell sx={{ color: 'white', borderBottom: '1px solid #273549', paddingBottom: '4px', paddingTop: '4px' }}>{user.name}</TableCell>
                                 <TableCell sx={{ color: 'white', borderBottom: '1px solid #273549', paddingBottom: '4px', paddingTop: '4px' }}>{user.email}</TableCell>
-                                <TableCell sx={{ borderBottom: '1px solid #273549', paddingBottom: '4px', paddingTop: '4px' }}>
-                                <Tooltip title="Desativar usuário">
-                                    <IconButton
-                                        onClick={() => onToggleActive(user.id)}
-                                        sx={{
-                                            color: user.isActive ? '#3B82F6' : '#94A3B8',
-                                            fontSize: 32 // controla o tamanho do ícone diretamente
-                                        }}
-                                    >
-                                        {user.isActive
-                                            ? <ToggleOnIcon sx={{ fontSize: 32 }} />
-                                            : <ToggleOffIcon sx={{ fontSize: 32 }} />}
+                                <TableCell sx={{ borderBottom: '1px solid #273549', paddingBottom: '4px', paddingTop: '4px', paddingLeft:'9px' }}>
+                                    <Tooltip title="Desativar usuário">
+                                        <IconButton
+                                            onClick={() => onToggleActive(user.id)}
+                                            sx={{
+                                                color: user.isActive ? '#3B82F6' : '#94A3B8',
+                                                fontSize: 32
+                                            }}
+                                        >
+                                            {user.isActive
+                                                ? <ToggleOnIcon sx={{ fontSize: 32 }} />
+                                                : <ToggleOffIcon sx={{ fontSize: 32 }} />}
                                         </IconButton>
-                                </Tooltip>
+                                    </Tooltip>
                                 </TableCell>
                                 <TableCell sx={{ borderBottom: '1px solid #273549', paddingBottom: '4px', paddingTop: '4px', paddingLeft: '33px' }}>
-                                <Tooltip title="Projetos que o usuário tem acesso">
-                                    <Chip
-                                        label={user.projects.length}
-                                        color="primary"
-                                        size="small"
-                                        sx={{ borderRadius: '8px', fontWeight: 'bold' }}
+                                    <Tooltip title="Projetos que o usuário tem acesso">
+                                        <Chip
+                                            label={user.projects.length}
+                                            color="primary"
+                                            size="small"
+                                            sx={{ borderRadius: '8px', fontWeight: 'bold' }}
                                         />
-                                </Tooltip>
+                                    </Tooltip>
                                 </TableCell>
                                 <TableCell sx={{ color: 'white', borderBottom: '1px solid #273549', paddingBottom: '4px', paddingTop: '4px', paddingLeft: '25px' }}>
                                     {new Date(user.createdAt).toLocaleDateString()}
                                 </TableCell>
-                                <TableCell sx={{ borderBottom: '1px solid #273549', paddingBottom: '4px', paddingTop: '4px', paddingLeft: '7px' }}>
+                                <TableCell sx={{ borderBottom: '1px solid #273549', paddingBottom: '4px', paddingTop: '4px', paddingLeft: '24px' }}>
                                     <Box display="flex" gap={1}>
                                         <Tooltip title="visualizar detalhes">
-                                            <IconButton size="small" color="primary" onClick={() => onDelete(user.id)} aria-label="Visualizar Detalhes">
-                                                <SearchIcon />
+                                            <IconButton size="small" color="primary" onClick={() => onDelete(user.id)} aria-label="Visualizar / Editar / Gerenciar Acesso">
+                                                <ManageAccountsIcon />
                                             </IconButton>
-                                        </Tooltip>
-                                        <Tooltip title="Editar usuário">
-                                            <IconButton size="small" color="primary" onClick={() => onEdit(user.id)}>
-                                                <EditIcon />
-                                            </IconButton>
-                                        </Tooltip>
-                                        <Tooltip title="Adicionar ao um projeto">
-                                            <IconButton size="small" color="secondary" onClick={() => onAddToProject(user.id)}>
-                                                <PersonAddIcon />
-                                            </IconButton>
-                                        </Tooltip>
-                                        <Tooltip title="Remover de um projeto">
-                                            <IconButton size="small" color="secondary" onClick={() => onAddToProject(user.id)}>
-                                                <PersonRemoveIcon />
-                                            </IconButton>
-                                        </Tooltip>
+                                        </Tooltip>                                       
                                     </Box>
                                 </TableCell>
                             </TableRow>
@@ -172,6 +199,30 @@ export default function MembersPage() {
                     </TableBody>
                 </Table>
             </TableContainer>
+
+
+            <AddUserModal
+                open={openModal}
+                onClose={() => setOpenModal(false)}
+                onSubmit={async (data) => {
+                    try {
+                        const response = await api.post("/user-management/register-user", data);
+                        if (response.data.success) {
+                            showMessage("Usuário criado com sucesso!", "success");
+                            setOpenModal(false);
+                            await fetchUsers();
+                        } else {
+                            showMessage("Erro ao cadastrar usuário", "error");
+                        }
+                    } catch (error) {
+                        showMessage("Erro ao cadastrar usuário", "error");
+                    }
+                }}
+                projects={projects.map(project => ({ ...project, id: String(project.id) }))}
+                roles={roles.map(role => ({ value: String(role.id), label: role.name }))}
+            />
         </Box>
+
+
     );
 }
