@@ -53,6 +53,7 @@ export default function MembersPage() {
     const [roles, setRoles] = useState<RoleResponse[]>([]);
     const [openModal, setOpenModal] = useState(false);
     const { showMessage } = useSnackbar();
+    const [userToEdit, setUserToEdit] = useState<UserResponse | null>(null);
 
     const fetchUsers = async () => {
         try {
@@ -88,15 +89,11 @@ export default function MembersPage() {
     }, []);
 
     const onEdit = (userId: string) => {
-        console.log("Editar:", userId);
-    };
-
-    const onAddToProject = (userId: string) => {
-        console.log("Adicionar a projeto:", userId);
-    };
-
-    const onDelete = (userId: string) => {
-        console.log("Excluir:", userId);
+        const user = users.find(u => u.id === userId);
+        if (user) {
+            setUserToEdit(user);
+            setOpenModal(true);
+        }
     };
 
     const onToggleActive = async (userId: string) => {
@@ -112,8 +109,8 @@ export default function MembersPage() {
         <Box p={4} width="100%" height="100%">
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
                 <Typography variant="h5" color="white" fontWeight="bold" >Gerenciamento de Membros</Typography>
-                <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={() => setOpenModal(true)}>
-                    Adicionar Usuário
+                <Button variant="contained" color="primary" sx={{ borderRadius: 0.5 }} startIcon={<AddIcon />} onClick={() => setOpenModal(true)}>
+                    Adicionar Membro
                 </Button>
             </Box>
 
@@ -121,9 +118,10 @@ export default function MembersPage() {
                 component={Paper}
                 sx={{
                     backgroundColor: '#111C2D',
-                    borderRadius: 3,
+                    borderRadius: 0.8,
                     border: "1px solid #334155",
-                    boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.4)"
+                    boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.4)",
+
                 }}
             >
                 <Table>
@@ -157,7 +155,7 @@ export default function MembersPage() {
                             >
                                 <TableCell sx={{ color: 'white', borderBottom: '1px solid #273549', paddingBottom: '4px', paddingTop: '4px' }}>{user.name}</TableCell>
                                 <TableCell sx={{ color: 'white', borderBottom: '1px solid #273549', paddingBottom: '4px', paddingTop: '4px' }}>{user.email}</TableCell>
-                                <TableCell sx={{ borderBottom: '1px solid #273549', paddingBottom: '4px', paddingTop: '4px', paddingLeft:'9px' }}>
+                                <TableCell sx={{ borderBottom: '1px solid #273549', paddingBottom: '4px', paddingTop: '4px', paddingLeft: '9px' }}>
                                     <Tooltip title="Desativar usuário">
                                         <IconButton
                                             onClick={() => onToggleActive(user.id)}
@@ -187,11 +185,11 @@ export default function MembersPage() {
                                 </TableCell>
                                 <TableCell sx={{ borderBottom: '1px solid #273549', paddingBottom: '4px', paddingTop: '4px', paddingLeft: '24px' }}>
                                     <Box display="flex" gap={1}>
-                                        <Tooltip title="visualizar detalhes">
-                                            <IconButton size="small" color="primary" onClick={() => onDelete(user.id)} aria-label="Visualizar / Editar / Gerenciar Acesso">
+                                        <Tooltip title="Visualizar / Editar / Gerenciar Acessos">
+                                            <IconButton size="small" color="primary" onClick={() => onEdit(user.id)} >
                                                 <ManageAccountsIcon />
                                             </IconButton>
-                                        </Tooltip>                                       
+                                        </Tooltip>
                                     </Box>
                                 </TableCell>
                             </TableRow>
@@ -201,26 +199,48 @@ export default function MembersPage() {
             </TableContainer>
 
 
-            <AddUserModal
-                open={openModal}
-                onClose={() => setOpenModal(false)}
-                onSubmit={async (data) => {
-                    try {
-                        const response = await api.post("/user-management/register-user", data);
-                        if (response.data.success) {
-                            showMessage("Usuário criado com sucesso!", "success");
-                            setOpenModal(false);
-                            await fetchUsers();
-                        } else {
-                            showMessage("Erro ao cadastrar usuário", "error");
+            {openModal && (
+                <AddUserModal
+                    open={openModal}
+                    onClose={() => {
+                        setOpenModal(false);
+                        setUserToEdit(null);
+                        fetchUsers();
+                    }}
+                    onSubmit={async (data) => {
+                        try {
+                            const response = userToEdit
+                                ? await api.put(`/user-management/update-user/${userToEdit.id}`, data)
+                                : await api.post("/user-management/register-user", data);
+
+                            if (response.data.success) {
+                                showMessage(userToEdit ? "Usuário atualizado!" : "Usuário criado!", "success");
+                                setOpenModal(false);
+                                setUserToEdit(null);
+                                await fetchUsers();
+                            } else {
+                                showMessage("Erro ao salvar usuário", "error");
+                            }
+                        } catch {
+                            showMessage("Erro ao salvar usuário", "error");
                         }
-                    } catch (error) {
-                        showMessage("Erro ao cadastrar usuário", "error");
+                    }}
+                    projects={projects.map(project => ({ ...project, id: String(project.id) }))}
+                    roles={roles.map(role => ({ value: String(role.id), label: role.name }))}
+                    initialData={
+                        userToEdit
+                            ? {
+                                name: userToEdit.name,
+                                email: userToEdit.email,
+                                projects: userToEdit.projects.map(p => ({
+                                    projectId: p.projectId,
+                                    roleId: p.roleId,
+                                })),
+                            }
+                            : undefined
                     }
-                }}
-                projects={projects.map(project => ({ ...project, id: String(project.id) }))}
-                roles={roles.map(role => ({ value: String(role.id), label: role.name }))}
-            />
+                />
+            )}
         </Box>
 
 

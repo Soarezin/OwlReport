@@ -6,8 +6,10 @@ import muiTheme from './theme/muiTheme';
 import App from './pages/App';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
+import 'rrweb-player/dist/style.css';
 
 import './index.css';
+import ReportDetailPage from './pages/ReportDetail';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -16,7 +18,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Routes>
           <Route path="/" element={<App />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/report-detail" element={<ReportDetailPage />} />
+          <Route
+            path="/login"
+            element={<LoginPage />}
+          />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

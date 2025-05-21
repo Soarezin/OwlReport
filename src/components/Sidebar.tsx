@@ -60,6 +60,7 @@ const sections = [
 interface SidebarProps {
   onSelectPage: (page: string) => void;
   currentPage: string;
+  onSelectProject: (project: Project) => void;
 }
 
 interface Project {
@@ -72,7 +73,7 @@ interface Project {
 }
   
   
-const Sidebar = ({ onSelectPage, currentPage }: SidebarProps) => {
+const Sidebar = ({ onSelectPage, currentPage, onSelectProject }: SidebarProps) => {
     const user = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")!) : null;
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [projectsList, setProjectsList] = useState<Project[]>([]);
@@ -87,8 +88,9 @@ const Sidebar = ({ onSelectPage, currentPage }: SidebarProps) => {
 
   const handleClose = () => setAnchorEl(null);
 
-  const handleSelect = (project: any) => {
+  const handleSelect = (project: Project) => {
     setSelected(project);
+    onSelectProject(project); 
     setAnchorEl(null);
   };
 
@@ -101,13 +103,14 @@ const Sidebar = ({ onSelectPage, currentPage }: SidebarProps) => {
         const allProjectsItem: Project = {
           id: 'all',
           name: 'Todos os Projetos',
-          type: 'Visão Geral',
+          type: 'Todos os Projetos',
           icon: <DashboardIcon />,
           stage: 5,
         };
 
         setProjectsList([allProjectsItem, ...data]);
         setSelected(allProjectsItem);
+        onSelectProject(allProjectsItem); 
 
       } catch (err) {
         console.error('Erro ao buscar projetos', err);
@@ -147,21 +150,21 @@ const Sidebar = ({ onSelectPage, currentPage }: SidebarProps) => {
         flexShrink: 0,
         [`& .MuiDrawer-paper`]: {
           width: drawerWidth,
-          bgcolor: "#111C2D",
+          bgcolor: "owl.background",
           color: "#F1F5F9",
           boxSizing: "border-box",
-          borderRight: "1px solid #334155",
+          borderRight: "owl.divider",
         },
       }}
     >
-      <Box sx={{ px: 3, py: 1, borderBottom: "1px solid #334155" }}>
+      <Box sx={{ px: 3, py: 1, borderBottom: "1px solid owl.divider" }}>
         <div className="flex flex-row items-center">
           <img src="../../icons/logo.jpeg" className="w-12 h-12 mr-3" />
           <Typography variant="h6" fontWeight="bold"
             sx={{
               fontFamily: "Space Grotesk, sans-serif",
               fontWeight: 700,
-              fontSize: "24px",
+              fontSize: "28px",
               letterSpacing: "0.5px",
               color: "#F8FAFC",
             }}>
@@ -170,11 +173,11 @@ const Sidebar = ({ onSelectPage, currentPage }: SidebarProps) => {
         </div>
       </Box>
 
-      <Divider sx={{ borderColor: "#1e1e23" }} />
+      <Divider sx={{ borderColor: "owl.divider" }} />
 
       <Box sx={{ px: 2, py: 2 }}>
         {selected && (
-          <Box onClick={handleOpen} sx={{ p: 2, px: 2, backgroundColor: '#0F172A', border: '1px solid #2d394d', borderRadius: 2, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth: 280 }}>
+          <Box onClick={handleOpen} sx={{ p: 2, px: 2, backgroundColor: 'owl.paper', border: '1px solid #2d394d', borderRadius: 0.5, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth: 280 }}>
             <Box display="flex" alignItems="center" gap={1} bgcolor={'#0F172A'}>
               {selected.icon}
               <Box>
@@ -192,9 +195,9 @@ const Sidebar = ({ onSelectPage, currentPage }: SidebarProps) => {
           slotProps={{
             paper: {
               sx: {
-                backgroundColor: '#0F172A',
+                backgroundColor: 'owl.paper',
                 color: 'white',
-                border: '1px solid #334155',
+                border: '1px solid owl.divider',
                 borderRadius: 2,
                 width: 250,
                 padding: 0,
@@ -210,9 +213,9 @@ const Sidebar = ({ onSelectPage, currentPage }: SidebarProps) => {
         >
           {Object.entries(groupedProjects).map(([group, list]) => (
             <Box key={group} bgcolor={'#0F172A'}>
-              <ListSubheader sx={{ color: '#94A3B8', backgroundColor: '#0F172A', paddingTop: 2, paddingBottom: 2, lineHeight: 0 }}>{group}</ListSubheader>
+              <ListSubheader sx={{ color: 'owl.color', backgroundColor: 'owl.paper', paddingTop: 2, paddingBottom: 2, lineHeight: 0 }}>{group}</ListSubheader>
               {list.map(project => (
-                <MenuItem key={project.id} onClick={() => handleSelect(project)} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:hover': { backgroundColor: '#334155' } }}>
+                <MenuItem key={project.id} onClick={() => handleSelect(project)} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:hover': { backgroundColor: 'owl.divider' } }}>
                   {project.icon}
                   <Box>
                     <Typography color="white">{project.name}</Typography>
@@ -222,7 +225,7 @@ const Sidebar = ({ onSelectPage, currentPage }: SidebarProps) => {
             </Box>
           ))}
           <Divider sx={{ borderColor: '#334155' }} />
-          <MenuItem onClick={() => alert("Adicionar produto")} sx={{ display: 'flex', gap: 1, py: 1.5, bgcolor:'#0F172A' }}>
+          <MenuItem onClick={() => alert("Adicionar produto")} sx={{ display: 'flex', gap: 1, py: 1.5, bgcolor:'owl.paper' }}>
             <AddIcon fontSize="small" />
             <Box>
               <Typography color="white" fontSize={14}>Adicionar Projeto</Typography>
