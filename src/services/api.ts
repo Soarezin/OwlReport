@@ -1,13 +1,14 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5043/',
+  baseURL: 'https://2490-2804-14d-2ca0-85cd-b068-d3d-2d5c-b749.ngrok-free.app/',
 });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    config.headers['ngrok-skip-browser-warning'] = 'true';
   }
   return config;
 });

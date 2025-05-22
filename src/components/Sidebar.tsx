@@ -30,6 +30,7 @@ import DevicesIcon from '@mui/icons-material/Devices';
 import { JSX, useEffect, useState } from "react";
 import api from "../services/api";
 import { useNavigate } from "react-router-dom";
+import ModalNovoProjeto from "./projects/ModalNewProject";
 
 const drawerWidth = 260;
 
@@ -94,31 +95,36 @@ const Sidebar = ({ onSelectPage, currentPage, onSelectProject }: SidebarProps) =
     setAnchorEl(null);
   };
 
+  const fetchProjects = async () => {
+    try {
+      const response = await api.get('project/list-projects');
+      const data: Project[] = response.data.data;
+
+      const allProjectsItem: Project = {
+        id: 'all',
+        name: 'Todos os Projetos',
+        type: 'Todos os Projetos',
+        icon: <DashboardIcon />,
+        stage: 5,
+      };
+
+      setProjectsList([allProjectsItem, ...data]);
+      setSelected(allProjectsItem);
+      onSelectProject(allProjectsItem); 
+    } catch (err) {
+      console.error('Erro ao buscar projetos', err);
+    }
+  };
+
   useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const response = await api.get('project/list-projects');
-        const data: Project[] = response.data.data;
-
-        const allProjectsItem: Project = {
-          id: 'all',
-          name: 'Todos os Projetos',
-          type: 'Todos os Projetos',
-          icon: <DashboardIcon />,
-          stage: 5,
-        };
-
-        setProjectsList([allProjectsItem, ...data]);
-        setSelected(allProjectsItem);
-        onSelectProject(allProjectsItem); 
-
-      } catch (err) {
-        console.error('Erro ao buscar projetos', err);
-      }
-    };
-
-    fetchProjects();
+    fetchProjects(); 
   }, []);
+
+  const handleProjectCreated = () => {
+    fetchProjects();       
+  };
+
+  const [openModal, setOpenModal] = useState(false); 
 
   const groupedProjects = projectsList.reduce((acc, project) => {
     const stageMap: Record<number, string> = {
@@ -225,13 +231,15 @@ const Sidebar = ({ onSelectPage, currentPage, onSelectProject }: SidebarProps) =
             </Box>
           ))}
           <Divider sx={{ borderColor: '#334155' }} />
-          <MenuItem onClick={() => alert("Adicionar produto")} sx={{ display: 'flex', gap: 1, py: 1.5, bgcolor:'owl.paper' }}>
-            <AddIcon fontSize="small" />
-            <Box>
-              <Typography color="white" fontSize={14}>Adicionar Projeto</Typography>
-            </Box>
-          </MenuItem>
-        </Menu>
+            <ListItemButton onClick={() => setOpenModal(true)} sx={{ display: 'flex', gap: 1, py: 1.5, bgcolor: 'owl.paper' }}>
+              <AddIcon fontSize="small" />
+                <Box>
+                  <Typography color="white" fontSize={14}>Adicionar Projeto</Typography>
+                </Box>
+            </ListItemButton>
+
+            <ModalNovoProjeto open={openModal} onClose={() => setOpenModal(false)} onSuccess={handleProjectCreated} />
+      </Menu>
       </Box>
 
       <List>
