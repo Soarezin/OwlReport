@@ -6,33 +6,23 @@ import {
   TextField,
   Button,
   Box,
-  Checkbox,
-  FormControlLabel,
+  Switch,
   Typography,
   MenuItem,
   Select,
   FormControl,
-  InputLabel
+  InputLabel,
+  Divider,
+  OutlinedInput,
+  Collapse
 } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useState, useEffect } from "react";
-
 
 interface Project {
   id: string;
   name: string;
   stage: number;
-}
-
-interface AddUserModalProps {
-  open: boolean;
-  onClose: () => void;
-  onSubmit: (data: {
-    name: string;
-    email: string;
-    projectRoles: { projectId: string; roleId: string }[];
-  }) => void;
-  projects: Project[];
-  roles: { value: string; label: string }[];
 }
 
 interface AddUserModalProps {
@@ -56,6 +46,8 @@ export default function AddUserModal({ open, onClose, onSubmit, projects, roles,
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [selectedProjects, setSelectedProjects] = useState<Record<string, string>>({});
+  const [expandedStage, setExpandedStage] = useState<string | false>(false);
+  const [alert, setAlert] = useState(false);
 
   useEffect(() => {
     if (open && initialData) {
@@ -63,7 +55,7 @@ export default function AddUserModal({ open, onClose, onSubmit, projects, roles,
       setEmail(initialData.email);
 
       const map: Record<string, string> = {};
-      initialData.projects.forEach(p => {
+      initialData.projects.forEach((p) => {
         map[p.projectId] = p.roleId;
       });
       setSelectedProjects(map);
@@ -77,7 +69,7 @@ export default function AddUserModal({ open, onClose, onSubmit, projects, roles,
   }, [open, initialData]);
 
   const handleToggleProject = (projectId: string) => {
-    setSelectedProjects(prev => {
+    setSelectedProjects((prev) => {
       const newSelection = { ...prev };
       if (newSelection[projectId]) {
         delete newSelection[projectId];
@@ -97,31 +89,47 @@ export default function AddUserModal({ open, onClose, onSubmit, projects, roles,
 
   function getStageLabel(stage: number): string {
     switch (stage) {
-      case 1: return "Desenvolvimento";
-      case 2: return "Teste";
-      case 3: return "Homologação";
-      case 4: return "Produção";
-      default: return "Outro";
+      case 1:
+        return "Desenvolvimento";
+      case 2:
+        return "Teste";
+      case 3:
+        return "Homologação";
+      case 4:
+        return "Produção";
+      default:
+        return "Outro";
     }
   }
 
   const handleRoleChange = (projectId: string, role: string) => {
-    setSelectedProjects(prev => ({ ...prev, [projectId]: role }));
+    setSelectedProjects((prev) => ({ ...prev, [projectId]: role }));
   };
 
+  const handleAccordionToggle = (stage: string) => {
+    setExpandedStage((prev) => (prev === stage ? false : stage));
+  };
+
+  const handleBackdropClick = (e: any) => {
+    e.stopPropagation();
+    setAlert(true);
+    setTimeout(() => setAlert(false), 500);
+  };
 
   const handleSubmit = () => {
-    const formattedProjects = Object.entries(selectedProjects).map(([projectId, role]) => ({
-      projectId,
-      role
-    }));
+    const formattedProjects = Object.entries(selectedProjects).map(
+      ([projectId, role]) => ({
+        projectId,
+        role,
+      })
+    );
     onSubmit({
       name,
       email,
-      projectRoles: formattedProjects.map(p => ({
+      projectRoles: formattedProjects.map((p) => ({
         projectId: p.projectId,
-        roleId: p.role
-      }))
+        roleId: p.role,
+      })),
     });
     setName("");
     setEmail("");
@@ -130,83 +138,186 @@ export default function AddUserModal({ open, onClose, onSubmit, projects, roles,
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" PaperProps={{
-      sx: {
-        backgroundColor: '#111C2D',
-        borderRadius: 2,
-        color: '#F1F5F9',
-        backgroundImage: 'none'
-      }
-    }}>
-
-      <DialogTitle sx={{ color: '#white', fontWeight: 'bold', fontVariant: 'h5' }}>Adicionar Novo Membro</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={(event, reason) => {
+        if (reason === 'backdropClick') handleBackdropClick(event);
+        else onClose();
+      }}
+      fullWidth
+      maxWidth="sm"
+      PaperProps={{
+        sx: {
+          backgroundColor: "#111C2D",
+          borderRadius: 2,
+          color: "#F1F5F9",
+          backgroundImage: "none",
+          animation: alert ? 'pulse-border 0.6s ease-in-out' : 'none',
+          border: alert ? '2px solid #3B82F6' : '2px solid transparent'
+        },
+      }}
+    >
+      <DialogTitle
+        sx={{ color: "#F1F5F9", fontWeight: "bold", fontSize: "1.25rem" }}
+      >
+        Adicionar Novo Membro
+      </DialogTitle>
       <DialogContent>
         <TextField
           fullWidth
-          margin="dense"
+          margin="normal"
           label="Nome"
+          variant="outlined"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          sx={{ input: { color: '#F1F5F9' }, label: { color: '#94A3B8' } }}
+          InputProps={{
+            sx: {
+              borderRadius: "12px",
+              backgroundColor: "#1E293B",
+              color: "#F1F5F9",
+            },
+          }}
+          InputLabelProps={{ sx: { color: "#94A3B8" } }}
         />
         <TextField
           fullWidth
-          margin="dense"
+          margin="normal"
           label="E-mail"
+          variant="outlined"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          sx={{ input: { color: '#F1F5F9' }, label: { color: '#94A3B8' } }}
+          InputProps={{
+            sx: {
+              borderRadius: "12px",
+              backgroundColor: "#1E293B",
+              color: "#F1F5F9",
+            },
+          }}
+          InputLabelProps={{ sx: { color: "#94A3B8" } }}
         />
 
+        <Divider sx={{ backgroundColor: "#1E293B", my: 3 }} />
+
         {projects.length > 0 && (
-          <Typography mt={3} mb={1} fontWeight="bold" color="#F1F5F9">
+          <Typography
+            mb={1}
+            fontWeight="bold"
+            color="#F1F5F9"
+            sx={{ marginLeft: 1.5 }}
+          >
             Adicionar aos Projetos
           </Typography>
         )}
 
-        {Object.entries(groupedProjects).map(([stageLabel, grouped]) => (
-          <Box key={stageLabel} mt={3}>
-            <Typography variant="subtitle1" fontWeight="bold" color="#94A3B8" mb={1}>
-              {stageLabel}
-            </Typography>
-
-            {grouped.map(project => (
-              <Box key={project.id} display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={!!selectedProjects[project.id]}
-                      onChange={() => handleToggleProject(project.id)}
-                      sx={{ color: '#3B82F6' }}
-                    />
-                  }
-                  label={<Typography color="#F1F5F9">{project.name}</Typography>}
+        <Box>
+          {Object.entries(groupedProjects).map(([stageLabel, grouped]) => (
+            <Box key={stageLabel} mb={2}>
+              <Box
+                onClick={() => handleAccordionToggle(stageLabel)}
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                sx={{
+                  cursor: "pointer",
+                  px: 1.5,
+                  py: 1,
+                  borderRadius: 1,
+                  "&:hover": { backgroundColor: "#1E293B" },
+                }}
+              >
+                <Typography
+                  variant="subtitle1"
+                  fontWeight="bold"
+                  color="#94A3B8"
+                >
+                  {stageLabel}
+                </Typography>
+                <ExpandMoreIcon
+                  sx={{
+                    transform:
+                      expandedStage === stageLabel
+                        ? "rotate(180deg)"
+                        : "rotate(0deg)",
+                    transition: "transform 0.2s ease-in-out",
+                    color: "#94A3B8",
+                  }}
                 />
-                {selectedProjects[project.id] && (
-                  <FormControl size="small" sx={{ minWidth: 200 }}>
-                    <InputLabel sx={{ color: '#94A3B8' }}>Função</InputLabel>
-                    <Select
-                      value={selectedProjects[project.id]}
-                      onChange={(e) => handleRoleChange(project.id, e.target.value)}
-                      label="Função"
-                      sx={{ color: '#F1F5F9' }}
-                    >
-                      {roles.map(role => (
-                        <MenuItem key={role.value} value={role.value}>{role.label}</MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                )}
               </Box>
-            ))}
-          </Box>
-        ))}
-      </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose} sx={{ color: '#3B82F6' }}>Cancelar</Button>
-        <Button variant="contained" onClick={handleSubmit}>Salvar</Button>
+              <Collapse in={expandedStage === stageLabel} timeout="auto" unmountOnExit>
+                <Box pl={2} mt={2}>
+                  {grouped.map((project) => (
+                    <Box key={project.id} mb={3}>
+                      <Box display="flex" alignItems="center" justifyContent="space-between">
+                        <Typography>{project.name}</Typography>
+                        <Switch
+                          checked={!!selectedProjects[project.id]}
+                          onChange={() => handleToggleProject(project.id)}
+                        />
+                      </Box>
+                      {selectedProjects[project.id] && (
+                        <Box mt={1}>
+                          <FormControl
+                            size="small"
+                            sx={{
+                              width: '100%',
+                              maxWidth: 220,
+                              backgroundColor: "#1E293B",
+                              borderRadius: "12px",
+                              mt: 1,
+                              "& .MuiOutlinedInput-notchedOutline": {
+                                borderColor: "transparent",
+                              },
+                              "&:hover .MuiOutlinedInput-notchedOutline": {
+                                borderColor: "#334155",
+                              },
+                              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                borderColor: "#3B82F6",
+                              },
+                            }}
+                          >
+                            <InputLabel sx={{ color: "#94A3B8" }}>Função</InputLabel>
+                            <Select
+                              value={selectedProjects[project.id]}
+                              onChange={(e) =>
+                                handleRoleChange(project.id, e.target.value)
+                              }
+                              label="Função"
+                              sx={{ color: "#F1F5F9" }}
+                            >
+                              {roles.map((role) => (
+                                <MenuItem key={role.value} value={role.value}>
+                                  {role.label}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Box>
+                      )}
+                    </Box>
+                  ))}
+                </Box>
+              </Collapse>
+            </Box>
+          ))}
+        </Box>
+      </DialogContent>
+      <DialogActions sx={{ px: 3, pb: 3 }}>
+        <Button onClick={onClose} sx={{ color: "#3B82F6" }}>
+          Cancelar
+        </Button>
+        <Button variant="contained" onClick={handleSubmit}>
+          Salvar
+        </Button>
       </DialogActions>
+
+      <style>{`
+        @keyframes pulse-border {
+          0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+          70% { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+      `}</style>
     </Dialog>
   );
 }

@@ -1,248 +1,276 @@
 import { useEffect, useState } from "react";
 import {
-    Table, TableHead, TableBody, TableRow, TableCell,
-    TableContainer, Paper, Chip, Button, IconButton, Box, Typography,
+  Table, TableHead, TableBody, TableRow, TableCell,
+  TableContainer, Paper, Chip, Button, IconButton, Box, Typography,
+  Avatar, TextField, InputAdornment, Tooltip, Menu, MenuItem, Select, MenuItem as MuiMenuItem, Switch
 } from "@mui/material";
 import api from "../../services/api";
 import AddIcon from "@mui/icons-material/Add";
-import ToggleOffIcon from "@mui/icons-material/ToggleOff";
-import ToggleOnIcon from "@mui/icons-material/ToggleOn";
-import EditIcon from "@mui/icons-material/Edit";
 import SearchIcon from '@mui/icons-material/Search';
-import Tooltip from '@mui/material/Tooltip';
 import AddUserModal from "./AddUserModal";
 import { UniqueIdentifier } from "@dnd-kit/core";
 import { useSnackbar } from "../snackbar/SnackbarContext";
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 interface ProjectWithRoleDto {
-    projectUserId: string;
-    projectId: string;
-    projectName: string;
-    roleId: string;
-    roleName: string;
-    roleDescription: string;
+  projectUserId: string;
+  projectId: string;
+  projectName: string;
+  roleId: string;
+  roleName: string;
+  roleDescription: string;
 }
 
 interface UserResponse {
-    id: string;
-    name: string;
-    email: string;
-    isActive: boolean;
-    createdAt: string;
-    projects: ProjectWithRoleDto[];
+  id: string;
+  name: string;
+  email: string;
+  isActive: boolean;
+  createdAt: string;
+  projects: ProjectWithRoleDto[];
 }
 
 interface ProjectResponse {
-    id: UniqueIdentifier;
-    name: string;
-    countOpenReports: number;
-    stage: number;
+  id: UniqueIdentifier;
+  name: string;
+  countOpenReports: number;
+  stage: number;
 }
 
 interface RoleResponse {
-    id: UniqueIdentifier;
-    name: string;
-    description: string;
-    isActive: boolean;
+  id: UniqueIdentifier;
+  name: string;
+  description: string;
+  isActive: boolean;
 }
 
 export default function MembersPage() {
-    const [projects, setProjects] = useState<ProjectResponse[]>([]);
-    const [users, setUsers] = useState<UserResponse[]>([]);
-    const [roles, setRoles] = useState<RoleResponse[]>([]);
-    const [openModal, setOpenModal] = useState(false);
-    const { showMessage } = useSnackbar();
-    const [userToEdit, setUserToEdit] = useState<UserResponse | null>(null);
+  const [projects, setProjects] = useState<ProjectResponse[]>([]);
+  const [users, setUsers] = useState<UserResponse[]>([]);
+  const [roles, setRoles] = useState<RoleResponse[]>([]);
+  const [openModal, setOpenModal] = useState(false);
+  const [userToEdit, setUserToEdit] = useState<UserResponse | null>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const { showMessage } = useSnackbar();
 
-    const fetchUsers = async () => {
-        try {
-            const response = await api.get("/user-management/list-users");
-            setUsers(response.data.data);
-        } catch (error) {
-            showMessage("Erro ao buscar usuários", "error");
-        }
-    };
+  const fetchUsers = async () => {
+    try {
+      const response = await api.get("/user-management/list-users");
+      setUsers(response.data.data);
+    } catch (error) {
+      showMessage("Erro ao buscar usuários", "error");
+    }
+  };
 
-    const fetchProjects = async () => {
-        try {
-            const response = await api.get("/project/list-projects");
-            setProjects(response.data.data);
-        } catch (error) {
-            showMessage("Erro ao buscar projetos", "error");
-        }
-    };
+  const fetchProjects = async () => {
+    try {
+      const response = await api.get("/project/list-projects");
+      setProjects(response.data.data);
+    } catch (error) {
+      showMessage("Erro ao buscar projetos", "error");
+    }
+  };
 
-    const fetchRoles = async () => {
-        try {
-            const response = await api.get("/user-management/get-roles");
-            setRoles(response.data.data);
-        } catch (error) {
-            showMessage("Erro ao buscar funções", "error");
-        }
-    };
+  const fetchRoles = async () => {
+    try {
+      const response = await api.get("/user-management/get-roles");
+      setRoles(response.data.data);
+    } catch (error) {
+      showMessage("Erro ao buscar funções", "error");
+    }
+  };
 
-    useEffect(() => {
-        fetchUsers();
-        fetchProjects();
-        fetchRoles();
-    }, []);
+  useEffect(() => {
+    fetchUsers();
+    fetchProjects();
+    fetchRoles();
+  }, []);
 
-    const onEdit = (userId: string) => {
-        const user = users.find(u => u.id === userId);
-        if (user) {
-            setUserToEdit(user);
-            setOpenModal(true);
-        }
-    };
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = user.name.toLowerCase().includes(search.toLowerCase()) ||
+      user.email.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "active" && user.isActive) ||
+      (statusFilter === "inactive" && !user.isActive);
+    return matchesSearch && matchesStatus;
+  });
 
-    const onToggleActive = async (userId: string) => {
-        const response = await api.post(`user-management/toggle-user/${userId}`)
-        if (response.status === 200) {
-            await fetchUsers();
-        } else {
-            showMessage("Erro ao desativar usuário", "error");
-        }
-    };
+  const toggleUserStatus = async (userId: string) => {
+    try {
+      await api.post(`/user-management/toggle-user/${userId}`);
+      fetchUsers();
+    } catch (error) {
+      showMessage("Erro ao alternar status do usuário", "error");
+    }
+  };
 
-    return (
-        <Box p={4} width="100%" height="100%">
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                <Typography variant="h5" color="white" fontWeight="bold" >Gerenciamento de Membros</Typography>
-                <Button variant="contained" color="primary" sx={{ borderRadius: 0.5 }} startIcon={<AddIcon />} onClick={() => setOpenModal(true)}>
-                    Adicionar Membro
-                </Button>
-            </Box>
+  const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>, userId: string) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedUserId(userId);
+  };
 
-            <TableContainer
-                component={Paper}
-                sx={{
-                    backgroundColor: '#111C2D',
-                    borderRadius: 0.8,
-                    border: "1px solid #334155",
-                    boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.4)",
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedUserId(null);
+  };
 
-                }}
-            >
-                <Table>
-                    <TableHead>
-                        <TableRow sx={{ borderBottom: '1px solid #334155' }}>
-                            {["Nome", "E-mail", "Ativo", "Projetos", "Criado Em", "Ações"].map(header => (
-                                <TableCell
-                                    key={header}
-                                    sx={{
-                                        fontSize: '16px',
-                                        color: 'white',
-                                        fontWeight: 'bold',
-                                        borderBottom: '1px solid #334155'
-                                    }}
-                                >
-                                    {header}
-                                </TableCell>
-                            ))}
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {users.map(user => (
-                            <TableRow
-                                key={user.id}
-                                hover
-                                sx={{
-                                    "&:hover": { backgroundColor: "#1E293B" },
-                                    borderBottom: '1px solid #273549',
-                                    height: 56,
-                                }}
-                            >
-                                <TableCell sx={{ color: 'white', borderBottom: '1px solid #273549', paddingBottom: '4px', paddingTop: '4px' }}>{user.name}</TableCell>
-                                <TableCell sx={{ color: 'white', borderBottom: '1px solid #273549', paddingBottom: '4px', paddingTop: '4px' }}>{user.email}</TableCell>
-                                <TableCell sx={{ borderBottom: '1px solid #273549', paddingBottom: '4px', paddingTop: '4px', paddingLeft: '9px' }}>
-                                    <Tooltip title="Desativar usuário">
-                                        <IconButton
-                                            onClick={() => onToggleActive(user.id)}
-                                            sx={{
-                                                color: user.isActive ? '#3B82F6' : '#94A3B8',
-                                                fontSize: 32
-                                            }}
-                                        >
-                                            {user.isActive
-                                                ? <ToggleOnIcon sx={{ fontSize: 32 }} />
-                                                : <ToggleOffIcon sx={{ fontSize: 32 }} />}
-                                        </IconButton>
-                                    </Tooltip>
-                                </TableCell>
-                                <TableCell sx={{ borderBottom: '1px solid #273549', paddingBottom: '4px', paddingTop: '4px', paddingLeft: '33px' }}>
-                                    <Tooltip title="Projetos que o usuário tem acesso">
-                                        <Chip
-                                            label={user.projects.length}
-                                            color="primary"
-                                            size="small"
-                                            sx={{ borderRadius: '8px', fontWeight: 'bold' }}
-                                        />
-                                    </Tooltip>
-                                </TableCell>
-                                <TableCell sx={{ color: 'white', borderBottom: '1px solid #273549', paddingBottom: '4px', paddingTop: '4px', paddingLeft: '25px' }}>
-                                    {new Date(user.createdAt).toLocaleDateString()}
-                                </TableCell>
-                                <TableCell sx={{ borderBottom: '1px solid #273549', paddingBottom: '4px', paddingTop: '4px', paddingLeft: '24px' }}>
-                                    <Box display="flex" gap={1}>
-                                        <Tooltip title="Visualizar / Editar / Gerenciar Acessos">
-                                            <IconButton size="small" color="primary" onClick={() => onEdit(user.id)} >
-                                                <ManageAccountsIcon />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </Box>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+  const handleEditUser = (userId: string) => {
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      setUserToEdit(user);
+      setOpenModal(true);
+      handleMenuClose();
+    }
+  };
 
+  return (
+    <Box p={4}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h5" color="white" fontWeight="bold">Gerenciamento de Membros</Typography>
+        <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={() => setOpenModal(true)}>
+          Adicionar Membro
+        </Button>
+      </Box>
 
-            {openModal && (
-                <AddUserModal
-                    open={openModal}
-                    onClose={() => {
-                        setOpenModal(false);
-                        setUserToEdit(null);
-                        fetchUsers();
-                    }}
-                    onSubmit={async (data) => {
-                        try {
-                            const response = userToEdit
-                                ? await api.put(`/user-management/update-user/${userToEdit.id}`, data)
-                                : await api.post("/user-management/register-user", data);
+      <Box display="flex" gap={2} mb={2}>
+        <TextField
+          placeholder="Buscar por nome ou e-mail"
+          variant="outlined"
+          size="small"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+            sx: { color: 'white' }
+          }}
+          sx={{ backgroundColor: '#1e293b', input: { color: 'white' }, borderRadius: 1 }}
+        />
 
-                            if (response.data.success) {
-                                showMessage(userToEdit ? "Usuário atualizado!" : "Usuário criado!", "success");
-                                setOpenModal(false);
-                                setUserToEdit(null);
-                                await fetchUsers();
-                            } else {
-                                showMessage("Erro ao salvar usuário", "error");
-                            }
-                        } catch {
-                            showMessage("Erro ao salvar usuário", "error");
-                        }
-                    }}
-                    projects={projects.map(project => ({ ...project, id: String(project.id) }))}
-                    roles={roles.map(role => ({ value: String(role.id), label: role.name }))}
-                    initialData={
-                        userToEdit
-                            ? {
-                                name: userToEdit.name,
-                                email: userToEdit.email,
-                                projects: userToEdit.projects.map(p => ({
-                                    projectId: p.projectId,
-                                    roleId: p.roleId,
-                                })),
-                            }
-                            : undefined
-                    }
-                />
-            )}
-        </Box>
+        <Select
+          size="small"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          sx={{ backgroundColor: '#1e293b', color: 'white', borderRadius: 1 }}
+        >
+          <MuiMenuItem value="all">Todos</MuiMenuItem>
+          <MuiMenuItem value="active">Ativos</MuiMenuItem>
+          <MuiMenuItem value="inactive">Inativos</MuiMenuItem>
+        </Select>
+      </Box>
 
+      <TableContainer component={Paper} sx={{ backgroundColor: '#111C2D', borderRadius: 2, border: "1px solid #334155" }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Usuário</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>E-mail</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Status</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Projetos</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Criado</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Ativo</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }} align="right">Ações</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredUsers.map(user => {
+              const isNew = new Date().getTime() - new Date(user.createdAt).getTime() < 3 * 24 * 60 * 60 * 1000;
+              return (
+                <TableRow key={user.id} hover sx={{ '&:hover': { backgroundColor: '#1E293B' } }}>
+                  <TableCell>
+                    <Box display="flex" alignItems="center" gap={2}>
+                      <Avatar sx={{ bgcolor: '#1E40AF', width: 40, height: 40, fontSize: 16 }}>
+                        {user.name?.charAt(0).toUpperCase() || '?'}
+                      </Avatar>
+                      <Box>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Typography color="white" fontWeight={500}>{user.name}</Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                  </TableCell>
+                  <TableCell sx={{ color: '#CBD5E1' }}>{user.email}</TableCell>
+                  <TableCell>
+                    {isNew && (
+                          <Chip
+                            label="Novo"
+                            size="small"
+                            color="success"
+                            sx={{ width: 'fit-content', mt: 0.5, fontSize: '0.7rem', height: 20 }}
+                          />
+                        )}
+                  </TableCell>
+                  <TableCell>
+                    <Chip label={user.projects.length} size="small" color="primary" />
+                  </TableCell>
+                  <TableCell sx={{ color: '#CBD5E1' }}>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell sx={{ color: '#CBD5E1' }}>
+                    <Switch size="small" checked={user.isActive} onChange={() => toggleUserStatus(user.id)} />    
+                  </TableCell>
+                  <TableCell align="right">
+                    <IconButton onClick={(e) => handleMenuOpen(e, user.id)}>
+                      <MoreVertIcon sx={{ color: '#94A3B8' }} />
+                    </IconButton>
+                    <Menu
+                      anchorEl={anchorEl}
+                      open={Boolean(anchorEl) && selectedUserId === user.id}
+                      onClose={handleMenuClose}
+                    >
+                      <MenuItem onClick={() => handleEditUser(user.id)}>Editar</MenuItem>
+                      <MenuItem onClick={() => toggleUserStatus(user.id)}>
+                        {user.isActive ? 'Desativar' : 'Ativar'}
+                      </MenuItem>
+                    </Menu>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
-    );
+      {openModal && (
+        <AddUserModal
+          open={openModal}
+          onClose={() => {
+            setOpenModal(false);
+            setUserToEdit(null);
+            fetchUsers();
+          }}
+          onSubmit={async (data) => {
+            try {
+              const response = userToEdit
+                ? await api.put(`/user-management/update-user/${userToEdit.id}`, data)
+                : await api.post("/user-management/register-user", data);
+
+              if (response.data.success) {
+                showMessage(userToEdit ? "Usuário atualizado!" : "Usuário criado!", "success");
+                setOpenModal(false);
+                setUserToEdit(null);
+                fetchUsers();
+              } else {
+                showMessage("Erro ao salvar usuário", "error");
+              }
+            } catch {
+              showMessage("Erro ao salvar usuário", "error");
+            }
+          }}
+          projects={projects.map(project => ({ ...project, id: String(project.id) }))}
+          roles={roles.map(role => ({ value: String(role.id), label: role.name }))}
+          initialData={userToEdit ? {
+            name: userToEdit.name,
+            email: userToEdit.email,
+            projects: userToEdit.projects.map(p => ({ projectId: p.projectId, roleId: p.roleId }))
+          } : undefined}
+        />
+      )}
+    </Box>
+  );
 }
