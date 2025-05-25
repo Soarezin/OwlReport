@@ -9,6 +9,6 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
   const navigate = useNavigate();
 
   return (
-    <LoginForm onLoginSuccess={() => navigate("/")} />
+    <LoginForm onLoginSuccess={() => navigate("/dashboard")} />
   );
 }

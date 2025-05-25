@@ -6,6 +6,7 @@ import muiTheme from './theme/muiTheme';
 import App from './pages/App';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
+import LandingPage from './pages/LandingPage';
 import 'rrweb-player/dist/style.css';
 
 import './index.css';
@@ -16,7 +17,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <ThemeProvider theme={muiTheme}>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<App />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/dashboard" element={<App />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/report-detail" element={<ReportDetailPage />} />
           <Route
