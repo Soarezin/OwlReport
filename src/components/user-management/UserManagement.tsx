@@ -58,7 +58,7 @@ export default function MembersPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await api.get("/user-management/list-users");
+      const response = await api.get("/users/list-users");
       setUsers(response.data.data);
     } catch (error) {
       showMessage("Erro ao buscar usuários", "error");
@@ -76,7 +76,7 @@ export default function MembersPage() {
 
   const fetchRoles = async () => {
     try {
-      const response = await api.get("/user-management/get-roles");
+      const response = await api.get("/roles/get-roles");
       setRoles(response.data.data);
     } catch (error) {
       showMessage("Erro ao buscar funções", "error");
@@ -101,7 +101,7 @@ export default function MembersPage() {
 
   const toggleUserStatus = async (userId: string) => {
     try {
-      await api.post(`/user-management/toggle-user/${userId}`);
+      await api.post(`/user/toggle-user/${userId}`);
       fetchUsers();
     } catch (error) {
       showMessage("Erro ao alternar status do usuário", "error");
@@ -247,8 +247,8 @@ export default function MembersPage() {
           onSubmit={async (data) => {
             try {
               const response = userToEdit
-                ? await api.put(`/user-management/update-user/${userToEdit.id}`, data)
-                : await api.post("/user-management/register-user", data);
+                ? await api.put(`/user/update-user/${userToEdit.id}`, data)
+                : await api.post("/user/register-user", data);
 
               if (response.data.success) {
                 showMessage(userToEdit ? "Usuário atualizado!" : "Usuário criado!", "success");

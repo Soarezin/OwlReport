@@ -1,14 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import LoginForm from '../components/auth/LoginForm';
 
-interface LoginPageProps {
-  onLoginSuccess: () => void;
-}
 
-export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
-  const navigate = useNavigate();
 
+export default function LoginPage() {
   return (
-    <LoginForm onLoginSuccess={() => navigate("/dashboard")} />
+    <LoginForm  />
   );
 }

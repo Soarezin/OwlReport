@@ -47,13 +47,12 @@ const App = () => {
 
   if (!isAuthenticated) {
     return (
-      <LoginPage onLoginSuccess={() => setIsAuthenticated(false)} />
+      <LoginPage />
     );
   }
 
   return (
     <SnackbarProvider>
-
       <div className="flex h-screen">
         <Sidebar onSelectPage={setCurrentPage} currentPage={currentPage} onSelectProject={setSelectedProject} />
         <MainLayout>{renderPage()}</MainLayout>

@@ -4,11 +4,9 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api'; 
 
-interface LoginFormProps {
-    onLoginSuccess: () => void;
-}
 
-export default function  LoginForm({ onLoginSuccess }: LoginFormProps) {
+
+export default function  LoginForm() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -23,11 +21,10 @@ export default function  LoginForm({ onLoginSuccess }: LoginFormProps) {
           const token = loginRes.data.data.token;
           localStorage.setItem('token', token);
 
-          const getMeRes = await api.get('/user-management/user-me');
+          const getMeRes = await api.get('/user/user-me');
           const userData = JSON.stringify(getMeRes.data.data);
           localStorage.setItem('user', userData);
-
-          onLoginSuccess();
+          navigate('/home');
         } catch (err) {
           console.error(err);
           alert('Erro ao realizar login.');
