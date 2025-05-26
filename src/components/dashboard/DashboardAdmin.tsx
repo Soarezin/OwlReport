@@ -30,6 +30,8 @@ import {
     BarSeriesType,
     axisClasses
 } from '@mui/x-charts';
+import Loading from "../utils/Loading";
+import { UniqueIdentifier } from "@dnd-kit/core";
 
 interface Project {
     id: string;
@@ -40,8 +42,8 @@ interface Project {
     icon?: React.ReactElement;
 }
 
-interface DashboardProps {
-    selectedProject: Project | null;
+interface DashboardAdminProps {
+    onSelectProject: (id: UniqueIdentifier) => void;
 }
 
 interface ProjectChartDto {
@@ -67,6 +69,7 @@ interface DashboardSummaryDto {
 }
 
 interface ProjectDetailsDto {
+    id: UniqueIdentifier,
     name: string;
     errorSessions: number;
     averageResolutionTime: string;
@@ -138,7 +141,7 @@ const fetchProjects = async (): Promise<Project[]> => {
 
 
 
-const DashBoardAdmin = () => {
+const DashBoardAdmin = ({ onSelectProject }: DashboardAdminProps) => {
     const [selectedRange, setSelectedRange] = useState<'day' | 'week' | 'month' | 'year'>('week');
     const [lineData, setLineData] = useState<{ x: string; y: number }[]>([]);
     const [projectsList, setProjectsList] = useState<Project[]>([]);
@@ -214,6 +217,8 @@ const DashBoardAdmin = () => {
         });
     }, [selectedRange]);
 
+    if (!summary) return <Loading />;
+
     return (
 
 
@@ -221,7 +226,16 @@ const DashBoardAdmin = () => {
             <Grid >
                 <Grid container spacing={2} mb={2}>
                     <Grid item xs={12} md={4}>
-                        <Card sx={{ border: "1px solid #334155", backgroundColor: "#111C2D" }}>
+                        <Card sx={{
+                            backgroundColor: "#111C2D", // #0f172a com transparência
+                            borderRadius: "16px",
+                            border: "1px solid",
+                            borderColor: "#38bdf86b", // tom roxo claro translúcido
+                            // boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)", // sombra difusa
+                            // backdropFilter: "blur(8px)", // leve efeito de desfoque para simular profundidade
+                            WebkitBackdropFilter: "blur(8px)", // compatibilidade Safari
+                            transition: "all 0.3s ease",
+                        }}>
                             <CardContent sx={{ padding: "16px !important" }}>
                                 <Box display="flex" alignItems="center" gap={2}>
                                     <TrendingUpIcon fontSize="large" color="primary" />
@@ -244,12 +258,21 @@ const DashBoardAdmin = () => {
                     </Grid>
 
                     <Grid item xs={12} md={4}>
-                        <Card sx={{ border: "1px solid #334155", bgcolor: "#111C2D" }}>
+                        <Card sx={{
+                            backgroundColor: "#111C2D", // #0f172a com transparência
+                            borderRadius: "16px",
+                            border: "1px solid",
+                            borderColor: "#38bdf86b", // tom roxo claro translúcido
+                            // boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)", // sombra difusa
+                            // backdropFilter: "blur(8px)", // leve efeito de desfoque para simular profundidade
+                            WebkitBackdropFilter: "blur(8px)", // compatibilidade Safari
+                            transition: "all 0.3s ease",
+                        }}>
                             <CardContent sx={{ padding: "16px !important" }}>
                                 <Box display="flex" alignItems="center" gap={2}>
                                     <ErrorIcon fontSize="large" sx={{ color: "#e11d48" }} />
                                     <Box display="flex" flexDirection="row" alignItems="center" gap={3}>
-                                        <Box sx={{ marginRight:"5px"}}>
+                                        <Box sx={{ marginRight: "5px" }}>
                                             <Typography variant="subtitle2">Erros Críticos em Aberto</Typography>
                                             <Typography variant="h6" color="text.primary" >
                                                 {summary?.criticalOpenErrors ?? "-"}
@@ -269,7 +292,16 @@ const DashBoardAdmin = () => {
                     </Grid>
 
                     <Grid item xs={12} md={4}>
-                        <Card sx={{ border: "1px solid #334155", backgroundColor: "#111C2D" }}>
+                        <Card sx={{
+                            backgroundColor: "#111C2D", // #0f172a com transparência
+                            borderRadius: "16px",
+                            border: "1px solid",
+                            borderColor: "#38bdf86b", // tom roxo claro translúcido
+                            // boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)", // sombra difusa
+                            // backdropFilter: "blur(8px)", // leve efeito de desfoque para simular profundidade
+                            WebkitBackdropFilter: "blur(8px)", // compatibilidade Safari
+                            transition: "all 0.3s ease",
+                        }}>
                             <CardContent sx={{ padding: "16px !important" }}>
                                 <Box display="flex" alignItems="center" gap={2}>
                                     <TimerIcon fontSize="large" sx={{ color: "#ca8a04" }} />
@@ -299,7 +331,16 @@ const DashBoardAdmin = () => {
                 </Grid>
 
                 <Grid display={"flex"} flexDirection={"row"} justifyContent={"space-around"} gap={2} mb={2}>
-                    <Card sx={{ border: "1px solid #334155", backgroundColor: "#111C2D", width: "50%" }}>
+                    <Card sx={{
+                        backgroundColor: "#111C2D", // #0f172a com transparência
+                        borderRadius: "16px",
+                        border: "1px solid",
+                        borderColor: "#38bdf86b", // tom roxo claro translúcido
+                        // boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)", // sombra difusa
+                        // backdropFilter: "blur(8px)", // leve efeito de desfoque para simular profundidade
+                        WebkitBackdropFilter: "blur(8px)", // compatibilidade Safari
+                        transition: "all 0.3s ease", width: "50%"
+                    }}>
                         <CardContent>
                             <Box display={"flex"} flexDirection={"row"} justifyContent={"space-between"} alignItems={"center"}>
                                 <Typography variant="h6" gutterBottom>Erros Totais</Typography>
@@ -329,7 +370,16 @@ const DashBoardAdmin = () => {
                             />
                         </CardContent>
                     </Card>
-                    <Card sx={{ border: "1px solid #334155", backgroundColor: "#111C2D", width: "50%" }}>
+                    <Card sx={{
+                        backgroundColor: "#111C2D", // #0f172a com transparência
+                        borderRadius: "16px",
+                        border: "1px solid",
+                        borderColor: "#38bdf86b", // tom roxo claro translúcido
+                        // boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)", // sombra difusa
+                        // backdropFilter: "blur(8px)", // leve efeito de desfoque para simular profundidade
+                        WebkitBackdropFilter: "blur(8px)", // compatibilidade Safari
+                        transition: "all 0.3s ease", width: "50%"
+                    }}>
                         <CardContent>
                             <Typography variant="h6" gutterBottom>Erros Totais Por Severidade</Typography>
                             <BarChart
@@ -343,7 +393,16 @@ const DashBoardAdmin = () => {
                 </Grid>
 
                 <Grid display={"flex"} flexDirection={"row"} justifyContent={"space-around"} gap={2}>
-                    <Card sx={{ border: "1px solid #334155", backgroundColor: "#111C2D", width: "50%" }}>
+                    <Card sx={{
+                        backgroundColor: "#111C2D", // #0f172a com transparência
+                        borderRadius: "16px",
+                        border: "1px solid",
+                        borderColor: "#38bdf86b", // tom roxo claro translúcido
+                        // boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)", // sombra difusa
+                        // backdropFilter: "blur(8px)", // leve efeito de desfoque para simular profundidade
+                        WebkitBackdropFilter: "blur(8px)", // compatibilidade Safari
+                        transition: "all 0.3s ease", width: "50%"
+                    }}>
                         <CardContent>
                             <Typography variant="h6" gutterBottom>Erros Por Projeto</Typography>
                             {projectStats.map((project, idx) => (
@@ -381,7 +440,16 @@ const DashBoardAdmin = () => {
                             ))}
                         </CardContent>
                     </Card>
-                    <Card sx={{ border: "1px solid #334155", backgroundColor: "#111C2D", width: "50%" }}>
+                    <Card sx={{
+                        backgroundColor: "#111C2D", // #0f172a com transparência
+                        borderRadius: "16px",
+                        border: "1px solid",
+                        borderColor: "#38bdf86b", // tom roxo claro translúcido
+                        // boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)", // sombra difusa
+                        // backdropFilter: "blur(8px)", // leve efeito de desfoque para simular profundidade
+                        WebkitBackdropFilter: "blur(8px)", // compatibilidade Safari
+                        transition: "all 0.3s ease", width: "50%"
+                    }}>
                         <CardContent>
                             <Typography variant="h6" gutterBottom>Detalhes dos Projetos</Typography>
                             <Table>
@@ -416,6 +484,12 @@ const DashBoardAdmin = () => {
                                                 {orderBy === col.key && (orderDirection === 'asc' ? ' ↑' : ' ↓')}
                                             </TableCell>
                                         ))}
+                                        <TableCell sx={{ fontSize: '16px',
+                                                    color: 'white',
+                                                    fontWeight: 'bold',
+                                                    borderBottom: '1px solid #334155',
+                                                    cursor: 'pointer',
+                                                    userSelect: 'none'}}>Ação</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -442,6 +516,17 @@ const DashBoardAdmin = () => {
                                                 {project.lastErrorAt && !isNaN(Date.parse(project.lastErrorAt))
                                                     ? new Date(project.lastErrorAt).toLocaleString()
                                                     : "-"}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Button
+                                                    variant="outlined"
+                                                    size="small"
+                                                    onClick={() => {
+                                                        onSelectProject(project.id);
+                                                    }}
+                                                >
+                                                    Detalhes
+                                                </Button>
                                             </TableCell>
                                         </TableRow>
                                     ))}

@@ -30,7 +30,7 @@ const drawerWidth = 260;
 const sections = [
   {
     title: "Dashboard",
-    items: [{ label: "Dashboard", icon: <DashboardIcon fontSize="small" /> }],
+    items: [{ label: "Home", icon: <DashboardIcon fontSize="small" /> }],
   },
   {
     title: "Gerenciamento",
@@ -45,6 +45,8 @@ interface SidebarProps {
   onSelectPage: (page: string) => void;
   currentPage: string;
   onSelectProject: (project: Project) => void;
+  projectsList: Project[];
+  selectedProject: Project | null;
 }
 
 interface Project {
@@ -56,11 +58,9 @@ interface Project {
   icon?: JSX.Element;
 }
 
-const Sidebar = ({ onSelectPage, currentPage, onSelectProject }: SidebarProps) => {
+const Sidebar = ({ onSelectPage, currentPage, onSelectProject, projectsList, selectedProject }: SidebarProps) => {
   const user = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")!) : null;
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [projectsList, setProjectsList] = useState<Project[]>([]);
-  const [selected, setSelected] = useState<any>(null);
   const [openModal, setOpenModal] = useState(false);
   const navigate = useNavigate();
 
@@ -73,39 +73,49 @@ const Sidebar = ({ onSelectPage, currentPage, onSelectProject }: SidebarProps) =
   const handleClose = () => setAnchorEl(null);
 
   const handleSelect = (project: Project) => {
-    setSelected(project);
+    // setSelected(project);
     onSelectProject(project);
     setAnchorEl(null);
   };
 
-  const fetchProjects = async () => {
-    try {
-      const response = await api.get('project/list-projects');
-      const data: Project[] = response.data.data;
-
-      const allProjectsItem: Project = {
-        id: 'all',
-        name: 'Todos os Projetos',
-        type: 'Todos os Projetos',
-        icon: <DashboardIcon />,
-        stage: 5,
-      };
-
-      setProjectsList([allProjectsItem, ...data]);
-      setSelected(allProjectsItem);
-      onSelectProject(allProjectsItem);
-    } catch (err) {
-      console.error('Erro ao buscar projetos', err);
-    }
-  };
-
   useEffect(() => {
-    fetchProjects();
-  }, []);
+    if (!selectedProject && projectsList.length > 0) {
+      const defaultProject = projectsList.find(p => p.id === 'all') ?? projectsList[0];
+      // setSelected(defaultProject);
+      onSelectProject(defaultProject);
+    }
+  }, [projectsList]);
 
-  const handleProjectCreated = () => {
-    fetchProjects();
-  };
+  // const fetchProjects = async () => {
+  //   try {
+  //     const response = await api.get('project/list-projects');
+  //     const data: Project[] = response.data.data;
+
+  //     const allProjectsItem: Project = {
+  //       id: 'all',
+  //       name: 'Todos os Projetos',
+  //       type: 'Todos os Projetos',
+  //       icon: <DashboardIcon />,
+  //       stage: 5,
+  //     };
+
+  //     setProjectsList([allProjectsItem, ...data]); // local
+  //     setProjectsList([allProjectsItem, ...data]); // globalF
+  //     setSelected(allProjectsItem);
+  //     onSelectProject(allProjectsItem);
+  //   } catch (err) {
+  //     console.error('Erro ao buscar projetos', err);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   fetchProjects();
+  // }, []);
+
+  // const handleProjectCreated = () => {
+  //   fetchProjects();
+  // };
+
 
   const groupedProjects = projectsList.reduce((acc, project) => {
     const stageMap: Record<number, string> = {
@@ -124,11 +134,12 @@ const Sidebar = ({ onSelectPage, currentPage, onSelectProject }: SidebarProps) =
       id: project.id,
       name: project.name,
       type: project.type || "Web app",
-      icon: project.stage === 5 ? <DashboardIcon /> : <DevicesIcon />
+      icon: project.stage === 5 ? <DashboardIcon /> : <DevicesIcon />,
+      stage: project.stage ?? 1,
     });
 
     return acc;
-  }, {} as Record<string, { id: string; name: string; type: string; icon: JSX.Element }[]>);
+  }, {} as Record<string, { id: string; name: string; type: string; icon: JSX.Element, stage: number }[]>);
 
   return (
     <Drawer
@@ -156,13 +167,13 @@ const Sidebar = ({ onSelectPage, currentPage, onSelectProject }: SidebarProps) =
       </Box>
 
       <Box sx={{ px: 2, py: 2 }}>
-        {selected && (
+        {selectedProject && (
           <Box
             onClick={handleOpen}
             sx={{
               p: 1.5,
               backgroundColor: '#1e293b',
-              border: '1px solid #334155',
+              border: '1px solid #38bdf86b',
               borderRadius: 1.5,
               cursor: 'pointer',
               display: 'flex',
@@ -175,8 +186,8 @@ const Sidebar = ({ onSelectPage, currentPage, onSelectProject }: SidebarProps) =
             }}
           >
             <Box display="flex" alignItems="center" gap={1}>
-              {selected.icon}
-              <Typography fontWeight={500}>{selected.name}</Typography>
+              {selectedProject.icon}
+              <Typography fontWeight={500}>{selectedProject.name}</Typography>
             </Box>
             <ExpandMoreIcon sx={{ color: '#94A3B8' }} />
           </Box>
@@ -242,7 +253,7 @@ const Sidebar = ({ onSelectPage, currentPage, onSelectProject }: SidebarProps) =
         <ModalNovoProjeto
           open={openModal}
           onClose={() => setOpenModal(false)}
-          onSuccess={handleProjectCreated}
+          onSuccess={() => window.location.reload()} // ou chame uma função que refaz o fetch no App
         />
       </Box>
 

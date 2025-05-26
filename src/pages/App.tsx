@@ -7,6 +7,8 @@ import React, { useEffect, useState } from "react";
 import LoginPage from "./LoginPage";
 import UserManagement from "../components/user-management/UserManagement";
 import { SnackbarProvider } from "./../components/snackbar/SnackbarContext";
+import api from "../services/api";
+import DashboardIcon from "@mui/icons-material/Dashboard";
 
 interface Project {
   id: string;
@@ -18,26 +20,56 @@ interface Project {
 }
 
 const App = () => {
-  const [currentPage, setCurrentPage] = useState("dashboard");
+  const [currentPage, setCurrentPage] = useState("home");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  const [projectsList, setProjectsList] = useState<Project[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsAuthenticated(!!token);
   }, []);
 
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const response = await api.get("project/list-projects");
+      const data: Project[] = response.data.data;
+
+      const allProjectsItem: Project = {
+        id: 'all',
+        name: 'Todos os Projetos',
+        type: 'Todos os Projetos',
+        icon: <DashboardIcon />, // importe isso no topo
+        stage: 5,
+      };
+
+      const fullList = [allProjectsItem, ...data];
+
+      setProjectsList(fullList);
+      setSelectedProject(allProjectsItem);
+    };
+
+    fetchProjects();
+  }, []);
+
+  console.log("selectedProject", selectedProject);
+  console.log("page", currentPage);
+
+
   const renderPage = () => {
     switch (currentPage) {
-      case "dashboard":
+      case "home":
         return (
           <Dashboard
-            key={`${selectedProject?.id}-${selectedProject?.stage}`} // 🔁 força remount se o stage mudar
+            key={`${selectedProject?.id}-${selectedProject?.stage}`}
             selectedProject={selectedProject ?? undefined}
+            onSelectProject={(project) => {
+              console.log("Setando projeto selecionado:", project);
+              setSelectedProject(project);
+            }}
+            projectsList={projectsList}
           />
         );
-      case "report":
-        return <FeedbackPanel />;
       case "membros":
         return <UserManagement />;
       default:
@@ -54,7 +86,7 @@ const App = () => {
   return (
     <SnackbarProvider>
       <div className="flex h-screen">
-        <Sidebar onSelectPage={setCurrentPage} currentPage={currentPage} onSelectProject={setSelectedProject} />
+        <Sidebar onSelectPage={setCurrentPage} currentPage={currentPage} onSelectProject={setSelectedProject} projectsList={projectsList}  selectedProject={selectedProject} />
         <MainLayout>{renderPage()}</MainLayout>
       </div>
     </SnackbarProvider>
