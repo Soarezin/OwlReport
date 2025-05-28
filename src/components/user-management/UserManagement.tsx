@@ -11,6 +11,7 @@ import AddUserModal from "./AddUserModal";
 import { UniqueIdentifier } from "@dnd-kit/core";
 import { useSnackbar } from "../snackbar/SnackbarContext";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import Loading from "../utils/Loading";
 
 interface ProjectWithRoleDto {
   projectUserId: string;
@@ -58,7 +59,7 @@ export default function MembersPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await api.get("/users/list-users");
+      const response = await api.get("/user/list-users");
       setUsers(response.data.data);
     } catch (error) {
       showMessage("Erro ao buscar usuários", "error");
@@ -127,6 +128,10 @@ export default function MembersPage() {
     }
   };
 
+  if (!users) {
+    return <Loading />;
+  }
+
   return (
     <Box p={4}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
@@ -166,13 +171,12 @@ export default function MembersPage() {
         </Select>
       </Box>
 
-      <TableContainer component={Paper} sx={{ backgroundColor: '#111C2D', borderRadius: 2, border: "1px solid #334155" }}>
+      <TableContainer component={Paper} sx={{ backgroundColor: '#111C2D', borderRadius: 2, border: "1px solid #38bdf86b", WebkitBackdropFilter: "blur(8px)" }}>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Usuário</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>E-mail</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Status</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Projetos</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Criado</TableCell>
               <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Ativo</TableCell>
@@ -197,16 +201,6 @@ export default function MembersPage() {
                     </Box>
                   </TableCell>
                   <TableCell sx={{ color: '#CBD5E1' }}>{user.email}</TableCell>
-                  <TableCell>
-                    {isNew && (
-                          <Chip
-                            label="Novo"
-                            size="small"
-                            color="success"
-                            sx={{ width: 'fit-content', mt: 0.5, fontSize: '0.7rem', height: 20 }}
-                          />
-                        )}
-                  </TableCell>
                   <TableCell>
                     <Chip label={user.projects.length} size="small" color="primary" />
                   </TableCell>

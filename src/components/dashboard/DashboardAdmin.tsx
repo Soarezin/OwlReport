@@ -393,7 +393,7 @@ const DashBoardAdmin = ({ onSelectProject }: DashboardAdminProps) => {
                 </Grid>
 
                 <Grid display={"flex"} flexDirection={"row"} justifyContent={"space-around"} gap={2}>
-                    <Card sx={{
+                    {/* <Card sx={{
                         backgroundColor: "#111C2D", // #0f172a com transparência
                         borderRadius: "16px",
                         border: "1px solid",
@@ -439,7 +439,7 @@ const DashBoardAdmin = ({ onSelectProject }: DashboardAdminProps) => {
                                 </Box>
                             ))}
                         </CardContent>
-                    </Card>
+                    </Card> */}
                     <Card sx={{
                         backgroundColor: "#111C2D", // #0f172a com transparência
                         borderRadius: "16px",
@@ -448,7 +448,7 @@ const DashBoardAdmin = ({ onSelectProject }: DashboardAdminProps) => {
                         // boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)", // sombra difusa
                         // backdropFilter: "blur(8px)", // leve efeito de desfoque para simular profundidade
                         WebkitBackdropFilter: "blur(8px)", // compatibilidade Safari
-                        transition: "all 0.3s ease", width: "50%"
+                        transition: "all 0.3s ease", width: "100%"
                     }}>
                         <CardContent>
                             <Typography variant="h6" gutterBottom>Detalhes dos Projetos</Typography>

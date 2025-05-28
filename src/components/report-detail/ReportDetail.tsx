@@ -7,6 +7,7 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../services/api';
+import Loading from '../utils/Loading';
 
 export interface ReportDetailResponse {
   id: string;
@@ -128,8 +129,9 @@ export default function ReportPreview() {
   }
 
   if (!payload) {
-    return <div>Carregando...</div>;
+      return <Loading />;
   }
+
 
   return (
     <Box sx={{ minHeight: '100vh', color: '#fff' }}>

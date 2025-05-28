@@ -29,6 +29,7 @@ import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 // Tipos
 interface DashboardData {
   totalReports: number;
@@ -109,6 +110,7 @@ const parseDate = (raw?: string | null): Date => {
 };
 
 const ProjectDashboard = ({ projectId, stage, name }: DashboardProjectProps) => {
+  const navigate = useNavigate();
   const [data, setData] = useState<DashboardData | null>(null);
   const [live, setLive] = useState<LiveReport[]>([]);
   const [selectedRange, setSelectedRange] = useState<'day' | 'week' | 'month' | 'year'>('week');
@@ -163,6 +165,7 @@ const ProjectDashboard = ({ projectId, stage, name }: DashboardProjectProps) => 
 
       setBarChartData({ dataset, series });
     });
+
 
     // Erros por data
     fetchErrorsByDate(projectId, selectedRange).then(data => {
@@ -464,6 +467,7 @@ const ProjectDashboard = ({ projectId, stage, name }: DashboardProjectProps) => 
                                 transition={{ duration: 0.2, delay: idx * 0.03 }}
                               >
                                 <ListItem
+                                  onClick={() => navigate(`/report-detail/${r.id}`)}
                                   sx={{
                                     display: 'flex',
                                     alignItems: 'center',
@@ -477,6 +481,7 @@ const ProjectDashboard = ({ projectId, stage, name }: DashboardProjectProps) => 
                                     '&:hover': {
                                       bgcolor: '#273549',
                                     },
+                                    cursor: "pointer"
                                   }}
                                 >
                                   <Box

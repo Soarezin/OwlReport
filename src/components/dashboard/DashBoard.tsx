@@ -13,7 +13,6 @@ import DashboardProject from "./DashboardProject";
 import { UniqueIdentifier } from "@dnd-kit/core";
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
-import KanbanBoard from "../kanban/KanbanBoard";
 import FeedbackPanel from "../../pages/FeedbackPanel";
 
 interface Project {
@@ -123,7 +122,7 @@ const DashBoard = ({ selectedProject, onSelectProject, projectsList }: DashBoard
             />
           )}
           {projectTab === 'charts' && (
-            <FeedbackPanel />
+            <FeedbackPanel projectId={selectedProject.id} />
           )}
         </Box>
       )}
