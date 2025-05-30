@@ -35,7 +35,6 @@ type ProjectViewTab = 'overview' | 'charts';
 const DashBoard = ({ selectedProject, onSelectProject, projectsList }: DashBoardProps) => {
   const [projectTab, setProjectTab] = useState<ProjectViewTab>('overview');
 
-  // resetar a aba quando trocar de projeto
   useEffect(() => {
     setProjectTab('overview');
   }, [selectedProject]);
@@ -100,12 +99,14 @@ const DashBoard = ({ selectedProject, onSelectProject, projectsList }: DashBoard
         )}
       </AppBar>
 
-      {/* Se não há projeto selecionado, exibe visão administrativa */}
-      {(!selectedProject || selectedProject.id === 'all') && (
+      {(selectedProject?.id === 'all') && (
         <DashboardAdmin
+          projectsList={projectsList}
           onSelectProject={(projectId: UniqueIdentifier) => {
             const found = projectsList.find(p => p.id === projectId);
-            if (found) onSelectProject(found);
+            if (found && selectedProject?.id !== found.id) {
+              onSelectProject(found);
+            }
           }}
         />
       )}
@@ -117,8 +118,7 @@ const DashBoard = ({ selectedProject, onSelectProject, projectsList }: DashBoard
             <DashboardProject
               projectId={selectedProject.id}
               name={selectedProject.name}
-              stage={selectedProject.stage} // ✅ agora está corretamente passando o `stage`
-              key={selectedProject.stage}   // garante re-render ao mudar o stage
+              stage={selectedProject.stage}
             />
           )}
           {projectTab === 'charts' && (

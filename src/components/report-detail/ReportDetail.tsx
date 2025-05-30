@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { JSX, useEffect, useRef, useState } from 'react';
 import { Grid, Paper, Chip, Divider, Card, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Collapse, Box, Typography } from '@mui/material';
 import 'rrweb-player/dist/style.css';
 import Player from 'rrweb-player';
@@ -8,6 +8,11 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../services/api';
 import Loading from '../utils/Loading';
+import BugReportIcon from "@mui/icons-material/BugReport";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import ReportProblemIcon from "@mui/icons-material/ReportProblem";
+import LightbulbIcon from "@mui/icons-material/Lightbulb";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 export interface ReportDetailResponse {
   id: string;
@@ -46,7 +51,69 @@ interface HttpLog {
   responseBody?: string | object;
 }
 
+const iconMap: Record<string, JSX.Element> = {
+  "Error": <BugReportIcon fontSize="small" sx={{ color: "#e11d48" }} />,
+  "Suggestion": <LightbulbIcon fontSize="small" sx={{ color: "#38bdf8" }} />,
+};
 
+const severityColor = (type: string) => {
+  switch (type) {
+    case "Low":
+      return "#16a34a";
+    case "Medium":
+      return "#ca8a04";
+    case "High":
+      return "#ea580c";
+    case "Critical":
+      return "#e11d48";
+    case "NoImpact":
+      return "#38bdf8";
+    default:
+      return "#64748b";
+  }
+};
+
+const translateSeverity = (severity: string) => {
+  switch (severity) {
+    case "Low":
+      return "Severidade Baixa";
+    case "Medium":
+      return "Severidade Média";
+    case "High":
+      return "Severidade Alta";
+    case "Critical":
+      return "Severidade Crítica";
+    case "NoImpact":
+      return "Sem Impacto";
+    default:
+      return severity;
+  }
+};
+const translateStatus = (status: string) => {
+  switch (status) {
+    case "open":
+      return "Aberto";
+    case "in_progress":
+      return "Em Progresso";
+    case "solved":
+      return "Resolvido";
+    default:
+      return status;
+  }
+};
+
+const statusColor = (status: string) => {
+  switch (status) {
+    case "open":
+      return "#facc15"; // amarelo
+    case "in_progress":
+      return "#38bdf8"; // azul claro
+    case "solved":
+      return "#22c55e"; // verde
+    default:
+      return "#94a3b8"; // cinza
+  }
+};
 
 export default function ReportPreview() {
   const playerRef = useRef<HTMLDivElement>(null);
@@ -95,14 +162,11 @@ export default function ReportPreview() {
     try {
       const parsed = JSON.parse(report.decryptedPayloadJson);
       setPayload(parsed);
-      console.log('Payload:', parsed);
-      // console
+
       if (parsed.consoleLogs) setConsoleLogs(parsed.consoleLogs);
-      console.log('Console Logs:', parsed.consoleLogs);
-      // HTTP logs
+
       if (parsed.httpLogs) setHttpLogs(parsed.httpLogs);
-      console.log('HTTP Logs:', parsed.httpLogs);
-      // Replay
+
       const replayEvents = parsed.replay?.[0]?.events ?? [];
       if (playerRef.current) {
         playerRef.current.innerHTML = '';
@@ -129,9 +193,17 @@ export default function ReportPreview() {
   }
 
   if (!payload) {
-      return <Loading />;
+    return <Loading />;
   }
 
+  const InfoRow = ({ label, value }: { label: string; value?: string }) => (
+    <Box>
+      <Typography fontSize={12} fontWeight="bold" color="#94a3b8">
+        {label}
+      </Typography>
+      <Typography variant="body2">{value ?? "---"}</Typography>
+    </Box>
+  );
 
   return (
     <Box sx={{ minHeight: '100vh', color: '#fff' }}>
@@ -187,108 +259,129 @@ export default function ReportPreview() {
           </Card>
 
           <Grid item xs={12} md={4} sx={{ width: "40%" }}>
-            <Card sx={{ p: 2, border: "1px solid #334155", backgroundColor: "#111C2D" }}>
-              <Typography variant="body2" fontSize={"17px"} fontWeight="bold" gutterBottom>
-                Detalhes do Erro
-              </Typography>
+            <Grid item xs={12} md={4}>
+              <Card
+                sx={{
+                  p: 2,
+                  border: "1px solid #334155",
+                  backgroundColor: "#111C2D",
+                  color: "#f1f5f9",
+                }}
+              >
+                {/* Título + Data */}
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                  {/* Ícone + Título + Data */}
+                  <Box display="flex" alignItems="center" gap={1.5}>
+                    {/* Ícone com fundo redondo */}
+                    <Box
+                      sx={{
+                        borderRadius: "50%",
+                        width: 36,
+                        height: 36,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        bgcolor: `${severityColor(report?.severity ?? "")}22`,
+                      }}
+                    >
+                      {iconMap[report?.category as keyof typeof iconMap] ?? null}
+                    </Box>
 
-              <Stack spacing={1.5}>
-                <Box>
-                  <Typography fontSize={12} fontWeight="bold" color="#94a3b8">
-                    Erro ID
-                  </Typography>
-                  <Typography variant="body2">{report?.id}</Typography>
+                    {/* Texto: Detalhes + Data */}
+                    <Box sx={{ display: "flex", flexDirection: "column" }}>
+                      <Typography variant="body2" fontSize="17px" fontWeight="bold">
+                        Detalhes
+                      </Typography>
+                      <Typography variant="caption" fontSize={12} color="#94a3b8">
+                        {report?.createdAt
+                          ? new Date(report.createdAt).toLocaleString("pt-BR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                          : "---"}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Chips de Severidade e Status */}
+                  <Box display="flex" gap={1}>
+                    <Chip
+                      label={translateSeverity(report?.severity ?? "")}
+                      size="small"
+                      sx={{
+                        bgcolor: `${severityColor(report?.severity ?? "")}22`,
+                        color: severityColor(report?.severity ?? ""),
+                        fontWeight: 700,
+                        fontSize: "11px",
+                        borderRadius: "8px",
+                        height: 24,
+                        px: 1.2,
+                      }}
+                    />
+                    <Chip
+                      label={translateStatus(report?.status ?? "")}
+                      size="small"
+                      sx={{
+                        bgcolor: `${statusColor(report?.status ?? "")}22`,
+                        color: statusColor(report?.status ?? ""),
+                        fontWeight: 700,
+                        fontSize: "11px",
+                        borderRadius: "8px",
+                        height: 24,
+                        px: 1.2,
+                      }}
+                    />
+                  </Box>
                 </Box>
 
-                <Box>
-                  <Typography fontSize={12} fontWeight="bold" color="#94a3b8">
-                    Página
-                  </Typography>
-                  <Typography variant="body2">{report?.pageUrl}</Typography>
-                </Box>
+                {/* Conteúdo */}
+                <Stack spacing={1.5}>
+                  <InfoRow label="Erro ID" value={report?.id} />
+                  <InfoRow label="Página" value={report?.pageUrl} />
+                  <InfoRow label="User-Agent" value={report?.userAgent ?? "Desconhecido"} />
 
-                <Box>
-                  <Typography fontSize={12} fontWeight="bold" color="#94a3b8">
-                    User-Agent
-                  </Typography>
-                  <Typography variant="body2">
-                    {report?.userAgent ?? "Desconhecido"}
-                  </Typography>
-                </Box>
-
-                <Box>
-                  <Typography fontSize={12} fontWeight="bold" color="#94a3b8">
-                    Categoria
-                  </Typography>
-                  <Chip
-                    label={
-                      report?.category === "Error"
-                        ? "Erro"
-                        : report?.category === "Fatal Error"
-                          ? "Erro Fatal"
+                  <Box>
+                    <Typography fontSize={12} fontWeight="bold" color="#94a3b8">
+                      Categoria
+                    </Typography>
+                    <Chip
+                      label={
+                        report?.category === "Error"
+                          ? "Erro"
                           : report?.category === "Suggestion"
                             ? "Sugestão"
                             : report?.category ?? "Desconhecida"
+                      }
+                      size="small"
+                      sx={{
+                        fontWeight: "bold",
+                        bgcolor: "#1e293b",
+                        color:
+                          report?.category === "Error"
+                            ? "#facc15"
+                            : "#38bdf8",
+                      }}
+                    />
+                  </Box>
+
+                  <InfoRow
+                    label="Status"
+                    value={
+                      report?.status === "open"
+                        ? "Aberto"
+                        : report?.status === "in_progress"
+                          ? "Em Progresso"
+                          : report?.status === "solved"
+                            ? "Resolvido"
+                            : report?.status ?? "Desconhecido"
                     }
-                    color="error"
-                    size="small"
-                    sx={{ fontWeight: "bold" }}
                   />
-                </Box>
-
-                <Box>
-                  <Typography fontSize={12} fontWeight="bold" color="#94a3b8">
-                    Severidade
-                  </Typography>
-                  <Chip
-                    label={
-                      report?.severity === "Critical"
-                        ? "Crítica"
-                        : report?.severity === "High"
-                          ? "Alta"
-                          : report?.severity === "Medium"
-                            ? "Média"
-                            : report?.severity === "Low"
-                              ? "Baixa"
-                              : report?.severity ?? "Desconhecida"
-                    }
-                    color="error"
-                    size="small"
-                    sx={{ fontWeight: "bold" }}
-                  />
-                </Box>
-
-                <Box>
-                  <Typography fontSize={12} fontWeight="bold" color="#94a3b8">
-                    Status
-                  </Typography>
-                  {report?.status === "open"
-                    ? "Aberto"
-                    : report?.status === "in_progress"
-                      ? "Em Progresso"
-                      : report?.status === "solved"
-                        ? "Resolvido"
-                        : report?.status ?? "Desconhecido"}
-                </Box>
-
-                <Box>
-                  <Typography fontSize={12} fontWeight="bold" color="#94a3b8">
-                    Data
-                  </Typography>
-                  <Typography variant="body2">
-                    {report?.createdAt
-                      ? new Date(report.createdAt).toLocaleString('pt-BR', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
-                      : '---'}
-                  </Typography>
-                </Box>
-              </Stack>
-            </Card>
+                </Stack>
+              </Card>
+            </Grid>
 
             {/* Console */}
             <Card

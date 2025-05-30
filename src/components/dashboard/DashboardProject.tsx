@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { JSX, useEffect, useState } from 'react';
 import {
   Box,
   Card,
@@ -12,7 +12,8 @@ import {
   Chip,
   Button,
   Tooltip,
-  Toolbar
+  Toolbar,
+  Stack
 } from '@mui/material';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import ErrorIcon from '@mui/icons-material/Error';
@@ -28,6 +29,11 @@ import PersonPinIcon from '@mui/icons-material/PersonPin';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
+import InboxIcon from "@mui/icons-material/Inbox";
+import BugReportIcon from "@mui/icons-material/BugReport";
+import LightbulbIcon from "@mui/icons-material/Lightbulb";
+
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 // Tipos
@@ -40,18 +46,39 @@ interface DashboardData {
   countMedium: number;
   countLow: number;
   avgResTime: string;
-  lastReport: { message: string; pageUrl: string; createdAt: string } | null;
+  lastReport: { message: string; pageUrl: string; createdAt: string; category: string; url: string; } | null;
   topErrors: { message: string; count: number }[];
   reportsByDay: { date: string; count: number }[];
   topPages: { pageUrl: string; count: number }[];
   details: { name: string; errorSessions: number; avgResolutionTime?: string; lastErrorAt?: string }[];
 }
-interface LiveReport { id: string; message: string; severity: string; createdAt: string }
+interface LiveReport { id: string; message: string; severity: string; createdAt: string; category: string; url: string; }
 
 interface DashboardProjectProps {
   projectId: string;
   stage?: number; // ou string, dependendo do seu tipo
   name?: string;
+}
+
+const iconMap: Record<string, JSX.Element> = {
+  "Error": <BugReportIcon fontSize="small" />,
+  "Suggestion": <LightbulbIcon fontSize="small" />,
+};
+
+
+function getColoredIcon(category: string, severity: string): JSX.Element | null {
+  const icon = iconMap[category];
+  const color = severityColor(severity);
+
+  console.log(icon);
+  console.log(color);
+
+
+  if (!icon || !color) return null;
+
+  return React.cloneElement(icon, {
+    sx: { color }
+  });
 }
 
 const translateSeverity = (severity: string) => {
@@ -64,6 +91,8 @@ const translateSeverity = (severity: string) => {
       return "Alta";
     case "Critical":
       return "Crítica";
+    case "NoImpact":
+      return "Sem Impacto";
     default:
       return severity;
   }
@@ -81,6 +110,8 @@ const severityColor = (s?: string): string => {
       return '#ea580c'; // laranja forte
     case 'critical':
       return '#e11d48'; // vermelho forte
+    case "NoImpact":
+      return "#38bdf8"
     default:
       return '#64748b'; // cinza
   }
@@ -142,8 +173,6 @@ const ProjectDashboard = ({ projectId, stage, name }: DashboardProjectProps) => 
   }>({ dataset: [], series: [] });
 
   useEffect(() => {
-    // Dados principais
-    console.log(stage)
     api.get(`/charts/project-data/${projectId}`).then(res => {
       const d = res.data.data;
       setData(d);
@@ -160,7 +189,8 @@ const ProjectDashboard = ({ projectId, stage, name }: DashboardProjectProps) => 
         { dataKey: "Low", label: "Baixa", color: "#16a34a" },
         { dataKey: "Medium", label: "Média", color: "#ca8a04" },
         { dataKey: "High", label: "Alta", color: "#ea580c" },
-        { dataKey: "Critical", label: "Crítica", color: "#e11d48" }
+        { dataKey: "Critical", label: "Crítica", color: "#e11d48" },
+        { dataKey: "NoImpact", label: "Sem Impacto", color: "#38bdf8" }
       ];
 
       setBarChartData({ dataset, series });
@@ -191,7 +221,11 @@ const ProjectDashboard = ({ projectId, stage, name }: DashboardProjectProps) => 
   const details = data.details || [];
 
   return (
-    <Box p={0}>
+    <Box p={0} sx={{
+      overflow: 'hidden', 
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
       <Toolbar
         disableGutters
         sx={{
@@ -404,11 +438,12 @@ const ProjectDashboard = ({ projectId, stage, name }: DashboardProjectProps) => 
         {/* Feed ao vivo */}
         <Card sx={{ bgcolor: '#111C2D', border: '1px solid #38bdf86b', borderRadius: 2 }}>
           <CardContent>
-            <Grid container spacing={2}>
+            <Grid container spacing={2} sx={{ flexWrap: 'nowrap', minHeight: 320 }} >
               {[
                 { title: 'Críticos', key: 'critical', color: '#e11d48' },
                 { title: 'Altos', key: 'high', color: '#f97316' },
                 { title: 'Médios / Baixos', key: 'medium-low', color: '#eab308' },
+                { title: 'Sem Impacto', key: 'none', color: '#38bdf8' },
               ].map((section) => {
                 const filtered = live.filter((r) =>
                   section.key === 'medium-low'
@@ -417,17 +452,21 @@ const ProjectDashboard = ({ projectId, stage, name }: DashboardProjectProps) => 
                 );
 
                 return (
-                  <Grid item xs={12} md={4} key={section.key}>
+                  <Grid item xs={12} md={3} key={section.key} sx={{ display: 'flex' }}>
                     <Box
                       sx={{
-                        maxHeight: 320,
+                        minHeight: 320,
+                        flex: 1,
                         bgcolor: '#0f172a',
                         p: 2,
                         borderRadius: 2,
                         border: '1px solid #1e293b',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        width: '100%'
                       }}
                     >
-                      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1} sx={{ height: 25 }}>
                         <Typography
                           variant="subtitle2"
                           sx={{ color: '#f8fafc', fontWeight: 600, textTransform: 'uppercase', fontSize: 13 }}
@@ -448,81 +487,116 @@ const ProjectDashboard = ({ projectId, stage, name }: DashboardProjectProps) => 
                           {filtered.length} erro{filtered.length !== 1 && 's'}
                         </Typography>
                       </Box>
-                      <Box sx={{ maxHeight: 260, overflowY: 'auto', pr: 1 }}>
-                        <List dense>
-                          {filtered.map((r, idx) => {
-                            const date = new Date(r.createdAt);
-                            const formattedDate = !isNaN(date.getTime())
-                              ? date.toLocaleString('pt-BR', {
-                                dateStyle: 'short',
-                                timeStyle: 'short',
-                              })
-                              : 'Data inválida';
 
-                            return (
-                              <motion.div
-                                key={r.id + idx}
-                                initial={{ opacity: 0, y: 6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.2, delay: idx * 0.03 }}
-                              >
-                                <ListItem
-                                  onClick={() => navigate(`/report-detail/${r.id}`)}
-                                  sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 2,
-                                    bgcolor: '#1e293b',
-                                    borderRadius: 2,
-                                    mb: 1,
-                                    px: 2,
-                                    py: 1.2,
-                                    transition: 'background 0.2s',
-                                    '&:hover': {
-                                      bgcolor: '#273549',
-                                    },
-                                    cursor: "pointer"
-                                  }}
+                      {filtered.length === 0 ? (
+                        <Box flex={1} display="flex" alignItems="center" justifyContent="center">
+                          <Typography variant="body2" sx={{ color: "#64748b" }}>
+                            Tudo certo por aqui!
+                          </Typography>
+                        </Box>
+                      ) : (
+                        <Box sx={{ maxHeight: 260, overflowY: 'auto', pr: 1 }}>
+                          <List dense>
+                            {filtered.map((r, idx) => {
+                              const date = new Date(r.createdAt);
+                              const formattedDate = !isNaN(date.getTime())
+                                ? date.toLocaleString('pt-BR', {
+                                  dateStyle: 'short',
+                                  timeStyle: 'short',
+                                })
+                                : 'Data inválida';
+                              return (
+                                <motion.div
+                                  key={r.id + idx}
+                                  initial={{ opacity: 0, y: 6 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ duration: 0.2, delay: idx * 0.03 }}
                                 >
-                                  <Box
-                                    sx={{
-                                      width: 8,
-                                      height: 8,
-                                      bgcolor: severityColor(r.severity),
-                                      borderRadius: '50%',
-                                      mt: 0.5,
-                                    }}
-                                  />
-                                  <Box flex={1}>
-                                    <Typography
-                                      variant="body2"
-                                      sx={{ color: '#f1f5f9', fontSize: 13, fontWeight: 500 }}
+                                  <Box>
+                                    <ListItem
+                                      onClick={() => navigate(`/report-detail/${r.id}`)}
+                                      sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 2,
+                                        bgcolor: '#1e293b',
+                                        borderRadius: 2,
+                                        mb: 1,
+                                        px: 2,
+                                        py: 1.2,
+                                        height: 60,
+                                        overflow: 'hidden',
+                                        transition: 'background 0.2s',
+                                        '&:hover': { bgcolor: '#273549' },
+                                        cursor: "pointer"
+                                      }}
                                     >
-                                      {r.message}
-                                    </Typography>
-                                    <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: 11 }}>
-                                      {formattedDate}
-                                    </Typography>
-                                  </Box>
+                                      <Box>
+                                        {getColoredIcon(r.category, r.severity)}
+                                      </Box>
 
-                                  <Chip
-                                    size="small"
-                                    label={translateSeverity(r.severity)}
-                                    sx={{
-                                      bgcolor: `${severityColor(r.severity)}22`, // cor com transparência
-                                      color: severityColor(r.severity),
-                                      fontWeight: 600,
-                                      height: 24,
-                                      fontSize: 11,
-                                      borderRadius: '6px',
-                                    }}
-                                  />
-                                </ListItem>
-                              </motion.div>
-                            );
-                          })}
-                        </List>
-                      </Box>
+                                      <Box
+                                        sx={{
+                                          flexGrow: 1,
+                                          minWidth: 0, // importante: permite truncamento
+                                          overflow: 'hidden',
+                                        }}
+                                      >
+                                        <Typography
+                                          variant="body2"
+                                          noWrap
+                                          sx={{
+                                            color: '#f1f5f9',
+                                            fontSize: 13,
+                                            fontWeight: 500,
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap',
+                                          }}
+                                        >
+                                          {r.message}
+                                        </Typography>
+                                        <Typography
+                                          variant="caption"
+                                          noWrap
+                                          sx={{
+                                            color: '#94a3b8',
+                                            fontSize: 11,
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap',
+                                          }}
+                                        >
+                                          {formattedDate}
+                                        </Typography>
+                                      </Box>
+
+                                      <Chip
+                                        size="small"
+                                        label={translateSeverity(r.severity)}
+                                        sx={{
+                                          bgcolor: `${severityColor(r.severity)}22`,
+                                          color: severityColor(r.severity),
+                                          fontWeight: 600,
+                                          height: 24,
+                                          fontSize: 11,
+                                          borderRadius: '6px',
+                                          flexShrink: 0,
+                                          ml: 1,
+                                        }}
+                                      />
+
+                                      <ArrowForwardIosIcon
+                                        sx={{ fontSize: 14, color: '#94a3b8', ml: 1, flexShrink: 0 }}
+                                      />
+                                    </ListItem>
+                                  </Box>
+                                </motion.div>
+                              );
+                            })}
+                          </List>
+                        </Box>
+                      )}
                     </Box>
                   </Grid>
                 );

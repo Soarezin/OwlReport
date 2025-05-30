@@ -1,35 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
-    AppBar,
     Box,
     Button,
-    Toolbar,
     Typography,
     Card,
     CardContent,
     Grid,
-    LinearProgress,
     Table,
     TableHead,
     TableBody,
     TableRow,
     TableCell,
     Tooltip,
+    Divider
 } from "@mui/material";
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import ErrorIcon from '@mui/icons-material/Error';
-import BugReportIcon from '@mui/icons-material/BugReport';
-import TimerIcon from '@mui/icons-material/Timer';
-import api from '../../services/api';
-import { Divider } from "@mui/material";
-
 import {
     LineChart,
-    LineSeriesType,
     BarChart,
-    BarSeriesType,
-    axisClasses
 } from '@mui/x-charts';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import ErrorIcon from '@mui/icons-material/Error';
+import TimerIcon from '@mui/icons-material/Timer';
+import api from '../../services/api';
 import Loading from "../utils/Loading";
 import { UniqueIdentifier } from "@dnd-kit/core";
 
@@ -44,6 +36,7 @@ interface Project {
 
 interface DashboardAdminProps {
     onSelectProject: (id: UniqueIdentifier) => void;
+    projectsList: Project[];
 }
 
 interface ProjectChartDto {
@@ -123,23 +116,31 @@ const translateSeverity = (severity: string) => {
             return "Alta";
         case "Critical":
             return "Crítica";
+        case "NoImpact":
+            return "Sem Impacto";
         default:
             return severity;
     }
 };
 
-const fetchProjects = async (): Promise<Project[]> => {
-    try {
-        const response = await api.get('project/list-projects');
-        const projectsList: Project[] = response.data.data;
-        return projectsList;
-    } catch (err) {
-        console.error('Erro ao buscar projetos', err);
-        return [];
-    }
+const severityColor = (s?: string): string => {
+  if (!s) return '#64748b'; // cinza padrão
+
+  switch (s.toLowerCase()) {
+    case 'low':
+      return '#16a34a'; // verde
+    case 'medium':
+      return '#ca8a04'; // amarelo escuro
+    case 'high':
+      return '#ea580c'; // laranja forte
+    case 'critical':
+      return '#e11d48'; // vermelho forte
+    case "NoImpact":
+      return "#38bdf8"
+    default:
+      return '#64748b'; // cinza
+  }
 };
-
-
 
 const DashBoardAdmin = ({ onSelectProject }: DashboardAdminProps) => {
     const [selectedRange, setSelectedRange] = useState<'day' | 'week' | 'month' | 'year'>('week');
@@ -150,14 +151,11 @@ const DashBoardAdmin = ({ onSelectProject }: DashboardAdminProps) => {
     const [projectDetails, setProjectDetails] = useState<ProjectDetailsDto[]>([]);
     const [orderBy, setOrderBy] = useState<'name' | 'errorSessions' | 'averageResolutionTime' | 'lastErrorAt'>('errorSessions');
     const [orderDirection, setOrderDirection] = useState<'asc' | 'desc'>('desc');
-
-    const getSafeFlex = (percent: number, total: number) =>
-        total === 0 ? 0 : Math.max(percent, 10);
-
     const [barChartData, setBarChartData] = useState<{
         dataset: any[];
         series: { dataKey: string; label: string; color: string }[];
     }>({ dataset: [], series: [] });
+
 
     const sortProjects = (data: ProjectDetailsDto[]) => {
         return [...data].sort((a, b) => {
@@ -177,10 +175,12 @@ const DashBoardAdmin = ({ onSelectProject }: DashboardAdminProps) => {
         });
     };
 
+    const didFetch = useRef(false);
+
     useEffect(() => {
-        fetchProjects().then((projects) => {
-            setProjectsList(projects);
-        });
+
+        if (didFetch.current) return;
+        didFetch.current = true;
 
         fetchDashboardSummary().then(setSummary);
         fetchProjectErrorDistribution().then(setProjectStats);
@@ -197,16 +197,7 @@ const DashBoardAdmin = ({ onSelectProject }: DashboardAdminProps) => {
             const series = severities.map((severity) => ({
                 dataKey: severity,
                 label: translateSeverity(severity),
-                color:
-                    severity === "Low"
-                        ? "#16a34a"
-                        : severity === "Medium"
-                            ? "#ca8a04"
-                            : severity === "High"
-                                ? "#ea580c"
-                                : severity === "Critical"
-                                    ? "#e11d48"
-                                    : "#e11d48", // Critical
+                color: severityColor(severity)
             }));
 
             data.forEach((item) => {
@@ -220,8 +211,6 @@ const DashBoardAdmin = ({ onSelectProject }: DashboardAdminProps) => {
     if (!summary) return <Loading />;
 
     return (
-
-
         <Box p={4} sx={{ flexGrow: 1, overflow: "auto" }}>
             <Grid >
                 <Grid container spacing={2} mb={2}>
@@ -484,12 +473,14 @@ const DashBoardAdmin = ({ onSelectProject }: DashboardAdminProps) => {
                                                 {orderBy === col.key && (orderDirection === 'asc' ? ' ↑' : ' ↓')}
                                             </TableCell>
                                         ))}
-                                        <TableCell sx={{ fontSize: '16px',
-                                                    color: 'white',
-                                                    fontWeight: 'bold',
-                                                    borderBottom: '1px solid #334155',
-                                                    cursor: 'pointer',
-                                                    userSelect: 'none'}}>Ação</TableCell>
+                                        <TableCell sx={{
+                                            fontSize: '16px',
+                                            color: 'white',
+                                            fontWeight: 'bold',
+                                            borderBottom: '1px solid #334155',
+                                            cursor: 'pointer',
+                                            userSelect: 'none'
+                                        }}>Ação</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -517,7 +508,7 @@ const DashBoardAdmin = ({ onSelectProject }: DashboardAdminProps) => {
                                                     ? new Date(project.lastErrorAt).toLocaleString()
                                                     : "-"}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell sx={{ color: 'white', borderBottom: '1px solid #273549' }}>
                                                 <Button
                                                     variant="outlined"
                                                     size="small"

@@ -37,8 +37,6 @@ const TabsComponent = () => {
           const target = document.getElementById("rrweb-player");
           if (!target) return;
 
-          console.log("Eventos carregados:", safeEvents);
-
           new Player({
             target,
             props: {

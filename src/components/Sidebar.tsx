@@ -73,7 +73,6 @@ const Sidebar = ({ onSelectPage, currentPage, onSelectProject, projectsList, sel
   const handleClose = () => setAnchorEl(null);
 
   const handleSelect = (project: Project) => {
-    // setSelected(project);
     onSelectProject(project);
     setAnchorEl(null);
   };
@@ -81,41 +80,9 @@ const Sidebar = ({ onSelectPage, currentPage, onSelectProject, projectsList, sel
   useEffect(() => {
     if (!selectedProject && projectsList.length > 0) {
       const defaultProject = projectsList.find(p => p.id === 'all') ?? projectsList[0];
-      // setSelected(defaultProject);
       onSelectProject(defaultProject);
     }
   }, [projectsList]);
-
-  // const fetchProjects = async () => {
-  //   try {
-  //     const response = await api.get('project/list-projects');
-  //     const data: Project[] = response.data.data;
-
-  //     const allProjectsItem: Project = {
-  //       id: 'all',
-  //       name: 'Todos os Projetos',
-  //       type: 'Todos os Projetos',
-  //       icon: <DashboardIcon />,
-  //       stage: 5,
-  //     };
-
-  //     setProjectsList([allProjectsItem, ...data]); // local
-  //     setProjectsList([allProjectsItem, ...data]); // globalF
-  //     setSelected(allProjectsItem);
-  //     onSelectProject(allProjectsItem);
-  //   } catch (err) {
-  //     console.error('Erro ao buscar projetos', err);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   fetchProjects();
-  // }, []);
-
-  // const handleProjectCreated = () => {
-  //   fetchProjects();
-  // };
-
 
   const groupedProjects = projectsList.reduce((acc, project) => {
     const stageMap: Record<number, string> = {

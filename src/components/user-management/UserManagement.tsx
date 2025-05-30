@@ -13,6 +13,19 @@ import { useSnackbar } from "../snackbar/SnackbarContext";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import Loading from "../utils/Loading";
 
+interface Project {
+  id: string;
+  name: string;
+  countOpenReports?: number;
+  stage?: number;
+  type?: string;
+  icon?: React.ReactElement;
+}
+
+interface DashBoardProps {
+  projectsList: Project[];
+}
+
 interface ProjectWithRoleDto {
   projectUserId: string;
   projectId: string;
@@ -45,7 +58,7 @@ interface RoleResponse {
   isActive: boolean;
 }
 
-export default function MembersPage() {
+export default function MembersPage({ projectsList }: DashBoardProps) {
   const [projects, setProjects] = useState<ProjectResponse[]>([]);
   const [users, setUsers] = useState<UserResponse[]>([]);
   const [roles, setRoles] = useState<RoleResponse[]>([]);
@@ -66,15 +79,6 @@ export default function MembersPage() {
     }
   };
 
-  const fetchProjects = async () => {
-    try {
-      const response = await api.get("/project/list-projects");
-      setProjects(response.data.data);
-    } catch (error) {
-      showMessage("Erro ao buscar projetos", "error");
-    }
-  };
-
   const fetchRoles = async () => {
     try {
       const response = await api.get("/roles/get-roles");
@@ -86,7 +90,14 @@ export default function MembersPage() {
 
   useEffect(() => {
     fetchUsers();
-    fetchProjects();
+    setProjects(
+      projectsList.map(project => ({
+        id: project.id,
+        name: project.name,
+        countOpenReports: project.countOpenReports ?? 0,
+        stage: project.stage ?? 0,
+      }))
+    );
     fetchRoles();
   }, []);
 
@@ -174,21 +185,21 @@ export default function MembersPage() {
       <TableContainer component={Paper} sx={{ backgroundColor: '#111C2D', borderRadius: 2, border: "1px solid #38bdf86b", WebkitBackdropFilter: "blur(8px)" }}>
         <Table>
           <TableHead>
-            <TableRow>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Usuário</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>E-mail</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Projetos</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Criado</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Ativo</TableCell>
-              <TableCell sx={{ color: 'white', fontWeight: 'bold' }} align="right">Ações</TableCell>
+            <TableRow >
+              <TableCell sx={{ color: 'white', fontWeight: 'bold', borderBottom: '1px solid #334155' }}>Usuário</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold', borderBottom: '1px solid #334155' }}>E-mail</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold', borderBottom: '1px solid #334155' }}>Projetos</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold', borderBottom: '1px solid #334155' }}>Criado</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold', borderBottom: '1px solid #334155' }}>Ativo</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold', borderBottom: '1px solid #334155' }} align="right">Ações</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredUsers.map(user => {
               const isNew = new Date().getTime() - new Date(user.createdAt).getTime() < 3 * 24 * 60 * 60 * 1000;
               return (
-                <TableRow key={user.id} hover sx={{ '&:hover': { backgroundColor: '#1E293B' } }}>
-                  <TableCell>
+                <TableRow key={user.id} hover sx={{ '&:hover': { backgroundColor: '#1E293B', } }}>
+                  <TableCell sx={{ borderBottom: '1px solid #334155' }}>
                     <Box display="flex" alignItems="center" gap={2}>
                       <Avatar sx={{ bgcolor: '#1E40AF', width: 40, height: 40, fontSize: 16 }}>
                         {user.name?.charAt(0).toUpperCase() || '?'}
@@ -200,15 +211,15 @@ export default function MembersPage() {
                       </Box>
                     </Box>
                   </TableCell>
-                  <TableCell sx={{ color: '#CBD5E1' }}>{user.email}</TableCell>
-                  <TableCell>
+                  <TableCell sx={{ color: '#CBD5E1', borderBottom: '1px solid #334155' }}>{user.email}</TableCell>
+                  <TableCell sx={{ borderBottom: '1px solid #334155' }}>
                     <Chip label={user.projects.length} size="small" color="primary" />
                   </TableCell>
-                  <TableCell sx={{ color: '#CBD5E1' }}>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
-                  <TableCell sx={{ color: '#CBD5E1' }}>
-                    <Switch size="small" checked={user.isActive} onChange={() => toggleUserStatus(user.id)} />    
+                  <TableCell sx={{ color: '#CBD5E1', borderBottom: '1px solid #334155' }}>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell sx={{ color: '#CBD5E1', borderBottom: '1px solid #334155' }}>
+                    <Switch size="small" checked={user.isActive} onChange={() => toggleUserStatus(user.id)} />
                   </TableCell>
-                  <TableCell align="right">
+                  <TableCell align="right" sx={{ borderBottom: '1px solid #334155' }}>
                     <IconButton onClick={(e) => handleMenuOpen(e, user.id)}>
                       <MoreVertIcon sx={{ color: '#94A3B8' }} />
                     </IconButton>

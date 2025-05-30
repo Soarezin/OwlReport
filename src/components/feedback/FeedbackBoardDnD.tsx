@@ -104,7 +104,11 @@ export default function BoardDragOnly({ projectId }: BoardDragOnlyProps) {
       month: "short",
       year: "numeric",
     }),
-    status: r.status,
+    severity: r.severity,
+    category: r.category,
+    createdAt: r.createdAt,
+    statusId: r.statusId,
+    status: r.status
   });
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -169,11 +173,14 @@ export default function BoardDragOnly({ projectId }: BoardDragOnlyProps) {
           {activeItem && (
             <Box>
               <FeedbackCard
-                type={activeItem.type}
-                comment={activeItem.comment}
-                author="Usuário"
-                email="usuario@owl.com"
-                date={activeItem.date}
+                id={activeItem.id}
+                pageUrl={activeItem.pageUrl}
+                userComment={activeItem.comment}
+                category={activeItem.type}
+                severity={activeItem.severity}
+                status={activeItem.status}
+                createdAt={activeItem.date}
+                statusId={activeItem.statusId}
               />
             </Box>
           )}
@@ -245,11 +252,14 @@ function DraggableCard({ id, item }: { id: string; item: any }) {
       }}
     >
       <FeedbackCard
-        type={item.type}
-        comment={item.comment}
-        author="Usuário"
-        email="usuario@owl.com"
-        date={item.date}
+        id={item.id}
+        pageUrl={item.pageUrl}
+        userComment={item.comment}
+        category={item.category}
+        severity={item.severity}
+        status={item.status}
+        createdAt={item.createdAt}
+        statusId={item.statusId}
       />
     </Box>
   );

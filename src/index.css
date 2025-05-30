@@ -163,3 +163,15 @@ body,
 }
 
 .rr-controller .rr-skip input[type="checkbox"]:checked::before {}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  box-shadow: 0 0 0 1000px #1E293B inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #1E293B inset !important;
+  -webkit-text-fill-color: #F1F5F9 !important;
+  caret-color: #F1F5F9;
+  border-radius: 8px;
+  transition: background-color 5000s ease-in-out 0s !important;
+}

@@ -9,6 +9,7 @@ import UserManagement from "../components/user-management/UserManagement";
 import { SnackbarProvider } from "./../components/snackbar/SnackbarContext";
 import api from "../services/api";
 import DashboardIcon from "@mui/icons-material/Dashboard";
+import { useRef } from 'react';
 
 interface Project {
   id: string;
@@ -30,7 +31,12 @@ const App = () => {
     setIsAuthenticated(!!token);
   }, []);
 
+  const alreadyFetched = useRef(false);
+
   useEffect(() => {
+    if (alreadyFetched.current) return;
+      alreadyFetched.current = true;
+
     const fetchProjects = async () => {
       const response = await api.get("project/list-projects");
       const data: Project[] = response.data.data;
@@ -52,26 +58,20 @@ const App = () => {
     fetchProjects();
   }, []);
 
-  console.log("selectedProject", selectedProject);
-  console.log("page", currentPage);
-
-
   const renderPage = () => {
     switch (currentPage) {
       case "home":
         return (
           <Dashboard
-            key={`${selectedProject?.id}-${selectedProject?.stage}`}
             selectedProject={selectedProject ?? undefined}
             onSelectProject={(project) => {
-              console.log("Setando projeto selecionado:", project);
               setSelectedProject(project);
             }}
             projectsList={projectsList}
           />
         );
       case "membros":
-        return <UserManagement />;
+        return <UserManagement projectsList={projectsList} />;
       default:
         return <div>404 - Página não encontrada</div>;
     }
@@ -86,7 +86,18 @@ const App = () => {
   return (
     <SnackbarProvider>
       <div className="flex h-screen">
-        <Sidebar onSelectPage={setCurrentPage} currentPage={currentPage} onSelectProject={setSelectedProject} projectsList={projectsList}  selectedProject={selectedProject} />
+        <Sidebar
+          onSelectPage={setCurrentPage}
+          currentPage={currentPage}
+          onSelectProject={(project) => {
+            setSelectedProject(project);
+            if (currentPage !== "home") {
+              setCurrentPage("home");
+            }
+          }}
+          projectsList={projectsList}
+          selectedProject={selectedProject}
+        />
         <MainLayout>{renderPage()}</MainLayout>
       </div>
     </SnackbarProvider>
